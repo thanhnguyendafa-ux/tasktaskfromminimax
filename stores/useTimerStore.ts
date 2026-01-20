@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Task } from '@/types';
+import { useTaskStore } from './useTaskStore';
 
 // Timer state interface
 interface TimerState {
@@ -29,14 +30,18 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   setLastTick: (tick) => set({ lastTick: tick }),
 
   tick: () => {
-    const { isRunning, lastTick, elapsedSeconds } = get();
+    const { isRunning, lastTick, elapsedSeconds, activeTaskId } = get();
     if (isRunning && lastTick) {
       const now = Date.now();
       const delta = (now - lastTick) / 1000;
+      const newElapsed = elapsedSeconds + delta;
       set({
-        elapsedSeconds: elapsedSeconds + delta,
+        elapsedSeconds: newElapsed,
         lastTick: now,
       });
+      if (activeTaskId) {
+        useTaskStore.getState().updateTimerTime(activeTaskId, newElapsed);
+      }
     }
   },
 

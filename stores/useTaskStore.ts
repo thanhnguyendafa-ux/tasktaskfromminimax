@@ -135,6 +135,7 @@ export const useTaskStore = create<TaskState>((set) => ({
   }),
   
   stopTimer: (id) => set((state) => {
+    const { elapsedSeconds } = useTimerStore.getState();
     useTimerStore.setState({
       activeTaskId: null,
       elapsedSeconds: 0,
@@ -142,37 +143,39 @@ export const useTaskStore = create<TaskState>((set) => ({
       lastTick: null,
     });
     return {
-      tasks: state.tasks.map((t) => 
+      tasks: state.tasks.map((t) =>
         t.id === id && (t.timer_status === 'running' || t.timer_status === 'paused')
-          ? { 
-              ...t, 
-              timer_status: 'idle', 
+          ? {
+              ...t,
+              timer_status: 'idle',
               timer_started_at: null,
               timer_paused_at: null,
-              total_time_seconds: t.accumulated_time_seconds,
+              total_time_seconds: elapsedSeconds,
+              accumulated_time_seconds: elapsedSeconds,
             }
           : { ...t, timer_status: 'idle' }
       ),
       currentTask: state.currentTask?.id === id
-        ? { 
-            ...state.currentTask, 
-            timer_status: 'idle', 
+        ? {
+            ...state.currentTask,
+            timer_status: 'idle',
             timer_started_at: null,
             timer_paused_at: null,
-            total_time_seconds: state.currentTask.accumulated_time_seconds,
+            total_time_seconds: elapsedSeconds,
+            accumulated_time_seconds: elapsedSeconds,
           }
         : state.currentTask,
     };
   }),
   
   updateTimerTime: (id, seconds) => set((state) => ({
-    tasks: state.tasks.map((t) => 
-      t.id === id 
-        ? { ...t, accumulated_time_seconds: seconds }
+    tasks: state.tasks.map((t) =>
+      t.id === id
+        ? { ...t, accumulated_time_seconds: seconds, total_time_seconds: seconds }
         : t
     ),
     currentTask: state.currentTask?.id === id
-      ? { ...state.currentTask, accumulated_time_seconds: seconds }
+      ? { ...state.currentTask, accumulated_time_seconds: seconds, total_time_seconds: seconds }
       : state.currentTask,
   })),
 }));
