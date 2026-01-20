@@ -63,7 +63,7 @@ CREATE POLICY "Users can delete own tags" ON tags
   FOR DELETE USING (user_id = auth.uid());
 
 -- ============================================
--- TASKS TABLE
+-- TASKS TABLE - Enhanced for Task Tracking
 -- ============================================
 CREATE TABLE IF NOT EXISTS tasks (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -73,14 +73,31 @@ CREATE TABLE IF NOT EXISTS tasks (
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
   priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
   due_date TIMESTAMPTZ,
+  
+  -- Tally System
   tally_count INTEGER NOT NULL DEFAULT 0,
+  tally_goal INTEGER NOT NULL DEFAULT 0,
+  
+  -- Pomodoro System
   pomodoro_count INTEGER NOT NULL DEFAULT 0,
+  pomodoro_goal INTEGER NOT NULL DEFAULT 1,
+  pomodoro_duration INTEGER NOT NULL DEFAULT 1500, -- 25 phút
+  
+  -- Timer System
   total_time_seconds INTEGER NOT NULL DEFAULT 0,
+  estimated_time_seconds INTEGER NOT NULL DEFAULT 0,
+  
+  -- Time Away Tracking
   last_active_at TIMESTAMPTZ DEFAULT NOW(),
-  time_away_seconds INTEGER NOT NULL DEFAULT 0,
+  last_completed_pomodoro_at TIMESTAMPTZ,
+  
+  -- Reminder System
   reminder_enabled BOOLEAN NOT NULL DEFAULT false,
-  reminder_interval INTEGER DEFAULT 30,
+  reminder_interval_minutes INTEGER NOT NULL DEFAULT 60,
+  last_reminder_sent_at TIMESTAMPTZ,
   next_reminder_at TIMESTAMPTZ,
+  reminder_count INTEGER NOT NULL DEFAULT 0,
+  
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -467,7 +467,7 @@ export default function HomePage() {
               onStartTimer={() => updateTask(selectedTask.id, { total_time_seconds: selectedTask.total_time_seconds + 900 })}
               onStopTimer={() => {}}
               onAddManualTime={(minutes) => updateTask(selectedTask.id, { total_time_seconds: selectedTask.total_time_seconds + minutes * 60 })}
-              onUpdateReminder={(enabled, interval) => updateTask(selectedTask.id, { reminder_enabled: enabled, reminder_interval: interval })}
+              onUpdateReminder={(enabled, interval) => updateTask(selectedTask.id, { reminder_enabled: enabled, reminder_interval_minutes: interval })}
               onUpdateGoal={(goal) => console.log("Update goal:", goal)}
             />
           </div>

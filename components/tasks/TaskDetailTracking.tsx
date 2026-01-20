@@ -245,7 +245,7 @@ export function TaskDetailTracking({
               <input
                 type="checkbox"
                 checked={task.reminder_enabled}
-                onChange={(e) => onUpdateReminder(e.target.checked, task.reminder_interval)}
+                onChange={(e) => onUpdateReminder(e.target.checked, task.reminder_interval_minutes)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-dark-secondary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
@@ -254,7 +254,7 @@ export function TaskDetailTracking({
           {task.reminder_enabled && (
             <div className="space-y-2">
               <p className="text-xs text-text-muted">
-                Interval: Every {task.reminder_interval} minutes
+                Interval: Every {task.reminder_interval_minutes} minutes
               </p>
               <p className="text-xs text-text-muted">
                 Next reminder: {task.next_reminder_at

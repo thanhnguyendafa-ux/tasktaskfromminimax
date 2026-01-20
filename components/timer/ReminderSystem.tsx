@@ -16,7 +16,7 @@ interface ReminderSystemProps {
 
 export function ReminderSystem({ task, onUpdate }: ReminderSystemProps) {
   const [isEnabled, setIsEnabled] = useState(task.reminder_enabled || false);
-  const [intervalMinutes, setIntervalMinutes] = useState(task.reminder_interval || 30);
+  const [intervalMinutes, setIntervalMinutes] = useState(task.reminder_interval_minutes || 60);
   const [nextReminder, setNextReminder] = useState<Date | null>(
     task.next_reminder_at ? new Date(task.next_reminder_at) : null
   );
@@ -70,7 +70,7 @@ export function ReminderSystem({ task, onUpdate }: ReminderSystemProps) {
 
   const saveSettings = () => {
     onUpdate({
-      reminder_interval: intervalMinutes,
+      reminder_interval_minutes: intervalMinutes,
       next_reminder_at: isEnabled
         ? new Date(Date.now() + intervalMinutes * 60 * 1000).toISOString()
         : null,

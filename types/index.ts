@@ -21,14 +21,31 @@ export interface Task {
   status: 'pending' | 'in_progress' | 'completed';
   priority: 'low' | 'medium' | 'high';
   due_date: string | null;
+  
+  // Tally System
   tally_count: number;
+  tally_goal: number;
+  
+  // Pomodoro System
   pomodoro_count: number;
+  pomodoro_goal: number;
+  pomodoro_duration: number;
+  
+  // Timer System
   total_time_seconds: number;
+  estimated_time_seconds: number;
+  
+  // Time Away Tracking
   last_active_at: string;
-  time_away_seconds: number;
+  last_completed_pomodoro_at: string | null;
+  
+  // Reminder System
   reminder_enabled: boolean;
-  reminder_interval: number;
+  reminder_interval_minutes: number;
+  last_reminder_sent_at: string | null;
   next_reminder_at: string | null;
+  reminder_count: number;
+  
   created_at: string;
   updated_at: string;
   tags?: Tag[];
@@ -196,7 +213,7 @@ export interface InventoryItem {
   equipped: boolean;
 }
 
-export type ViewType = 'main' | 'list' | 'kanban' | 'calendar' | 'database' | 'gallery' | 'gantt' | 'timeline';
+export type ViewType = 'main' | 'list' | 'kanban' | 'calendar' | 'gallery' | 'gantt' | 'timeline' | 'database';
 export type ThemeType = 'dark' | 'mint' | 'slate';
 
 export interface TaskFilters {
