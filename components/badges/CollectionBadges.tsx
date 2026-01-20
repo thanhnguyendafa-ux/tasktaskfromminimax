@@ -103,7 +103,7 @@ export function CollectionBadges({ badges, onClaim }: CollectionBadgesProps) {
       </div>
 
       {/* Badges Grid */}
-      <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+      <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
         {filteredBadges.map((badge, index) => (
           <motion.div
             key={badge.id}

@@ -33,6 +33,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, tags }: TaskFormProps) {
       priority,
       due_date: dueDate || null,
       status: "pending",
+      tags: selectedTags as unknown as import("@/types").Tag[],
     });
     onClose();
     setTitle("");

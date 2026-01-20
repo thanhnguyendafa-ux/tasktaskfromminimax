@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Flame, Coins, Trophy, Plus, Target, Gift, Users, BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
@@ -40,6 +40,21 @@ export default function HomePage() {
   const { tasks, setTasks, updateTask } = useTaskStore();
   const { profile, addXp, addCoins } = useUserStore();
 
+  // Daily reset for tally counts
+  useEffect(() => {
+    const lastReset = localStorage.getItem('lastTallyReset');
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (lastReset !== today && tasks.length > 0) {
+      tasks.forEach((t) => {
+        if (t.tally_count > 0) {
+          updateTask(t.id, { tally_count: 0 });
+        }
+      });
+      localStorage.setItem('lastTallyReset', today);
+    }
+  }, [tasks.length]);
+
   // Demo data for integrated components
   const [habits, setHabits] = useState<Habit[]>([
     { id: "1", user_id: "demo", name: "Morning jog", icon: "🏃", color: "#10b981", frequency: "daily", target_count: 1, current_count: 1, streak: 7, best_streak: 14, is_active: true, created_at: new Date().toISOString() },
@@ -48,8 +63,8 @@ export default function HomePage() {
   ]);
 
   const [goals, setGoals] = useState<Goal[]>([
-    { id: "1", user_id: "demo", title: "Complete 100 tasks", description: "Q1 2025 goal", target_value: 100, current_value: 45, reward_xp: 400, reward_coins: 200, deadline: "2025-03-31", is_completed: false, created_at: new Date().toISOString() },
-    { id: "2", user_id: "demo", title: "Reach Level 10", description: "Level up!", target_value: 10000, current_value: 4500, reward_xp: 1000, reward_coins: 500, deadline: "2025-06-30", is_completed: false, created_at: new Date().toISOString() },
+    { id: "1", user_id: "demo", title: "Complete 100 tasks", description: "Q1 2025 goal", target_value: 100, current_value: 45, reward_xp: 400, reward_coins: 200, deadline: "2026-12-31", is_completed: false, created_at: new Date().toISOString() },
+    { id: "2", user_id: "demo", title: "Reach Level 10", description: "Level up!", target_value: 10000, current_value: 4500, reward_xp: 1000, reward_coins: 500, deadline: "2026-12-31", is_completed: false, created_at: new Date().toISOString() },
   ]);
 
   const [challenges, setChallenges] = useState<Challenge[]>([
@@ -74,9 +89,9 @@ export default function HomePage() {
     total_time_seconds: 75600,
     current_streak: 7,
     best_streak: 14,
-    level: profile?.level || 8,
-    xp: profile?.xp || 4500,
-    coins: profile?.coins || 2450,
+    level: profile?.level || 1,
+    xp: profile?.xp || 0,
+    coins: profile?.coins || 0,
   };
 
   const weeklyData = [
@@ -122,7 +137,17 @@ export default function HomePage() {
   const handleTally = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (task) {
-      updateTask(taskId, { tally_count: task.tally_count + 1 });
+      const newCount = task.tally_count + 1;
+      updateTask(taskId, { 
+        tally_count: newCount,
+        last_tally_at: new Date().toISOString()
+      });
+      
+      // Reward khi đạt goal
+      if (newCount >= task.tally_goal) {
+        addXp(10);
+        addCoins(5);
+      }
     }
   };
 
@@ -146,7 +171,13 @@ export default function HomePage() {
   };
 
   const handleCompleteHabit = (habitId: string) => {
-    setHabits(habits.map((h) => h.id === habitId ? { ...h, current_count: h.current_count + 1, streak: h.streak + 1 } : h));
+    setHabits(habits.map((h) => {
+      if (h.id === habitId && h.current_count < h.target_count) {
+        const newStreak = h.streak + 1;
+        return { ...h, current_count: h.current_count + 1, streak: newStreak, best_streak: Math.max(newStreak, h.best_streak) };
+      }
+      return h;
+    }));
   };
 
   const handleDeleteHabit = (habitId: string) => {
@@ -219,7 +250,7 @@ export default function HomePage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Card className="text-center">
                 <Flame className="w-6 h-6 text-orange-500 mx-auto mb-1" />
                 <p className="text-2xl font-bold text-text-primary">{profile?.streak_days || 0}</p>
@@ -249,10 +280,10 @@ export default function HomePage() {
               <div className="flex justify-between mb-2">
                 <span className="text-sm text-text-secondary">XP Progress</span>
                 <span className="text-sm font-medium text-text-primary">
-                  {profile?.xp || 0} / {((profile?.level || 1) + 1) * 100}
+                  {profile?.xp || 0} / {((profile?.level || 1) * 100)} XP
                 </span>
               </div>
-              <ProgressBar value={profile?.xp || 0} max={((profile?.level || 1) + 1) * 100} color="warning" />
+              <ProgressBar value={(profile?.xp || 0) % 100} max={100} color="warning" />
             </Card>
 
             {/* Daily Challenges */}

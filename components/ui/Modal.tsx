@@ -35,7 +35,7 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className={`w-full ${sizes[size]} bg-dark-secondary rounded-2xl shadow-2xl overflow-hidden`}
+              className={`w-full ${sizes[size]} max-h-[90vh] overflow-y-auto bg-dark-secondary rounded-2xl shadow-2xl overflow-hidden`}
               onClick={(e) => e.stopPropagation()}
             >
               {title && (

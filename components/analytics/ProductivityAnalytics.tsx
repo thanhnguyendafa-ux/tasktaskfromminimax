@@ -44,7 +44,7 @@ export function ProductivityAnalytics({ stats, weeklyData }: ProductivityAnalyti
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-2 gap-2 mb-4">
         <div className="p-3 bg-dark-tertiary rounded-xl">
           <div className="flex items-center gap-2 mb-1">
             <CheckCircle className="w-4 h-4 text-green-400" />

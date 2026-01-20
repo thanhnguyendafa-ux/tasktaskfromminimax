@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Plus, Minus, Play, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Task } from "@/types";
 
 interface TaskCardProps {
@@ -17,14 +18,47 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onComplete, onTally, onPomodoro, onTimer, onClick }: TaskCardProps) {
+  const [showPlusOne, setShowPlusOne] = useState(false);
+  const [timeSinceTally, setTimeSinceTally] = useState("");
+  
   const priorityVariant = {
     low: "low" as const,
     medium: "medium" as const,
     high: "high" as const,
   };
 
+  const formatTimeSince = (timestamp: string | null) => {
+    if (!timestamp) return "No tally yet";
+    const diff = Date.now() - new Date(timestamp).getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  };
+
+  useEffect(() => {
+    setTimeSinceTally(formatTimeSince(task.last_tally_at));
+    const interval = setInterval(() => {
+      setTimeSinceTally(formatTimeSince(task.last_tally_at));
+    }, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, [task.last_tally_at]);
+
+  const handleTallyClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTally(task.id);
+    setShowPlusOne(true);
+    setTimeout(() => setShowPlusOne(false), 1000);
+  };
+
   const formatTimeLeft = (dueDate: string) => {
-    const diff = new Date(dueDate).getTime() - Date.now();
+    const date = new Date(dueDate);
+    if (isNaN(date.getTime())) return "Invalid date";
+    const diff = date.getTime() - Date.now();
     if (diff < 0) return "Overdue";
     const hours = Math.floor(diff / (1000 * 60 * 60));
     if (hours < 24) return `${hours}h left`;
@@ -69,15 +103,34 @@ export function TaskCard({ task, onComplete, onTally, onPomodoro, onTimer, onCli
           </Badge>
         </div>
 
-        <div className="flex items-center gap-4 text-sm">
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => { e.stopPropagation(); onTally(task.id); }}
-            className="flex items-center gap-1.5 px-2 py-1 bg-dark-tertiary rounded-lg hover:bg-opacity-80"
-          >
-            <Plus className="w-4 h-4 text-accent-primary" />
-            <span className="text-text-primary">{task.tally_count}</span>
-          </motion.button>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+          <div className="relative">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={handleTallyClick}
+              className="flex items-center gap-1.5 px-2 py-1 bg-dark-tertiary rounded-lg hover:bg-opacity-80"
+            >
+              <Plus className="w-4 h-4 text-accent-primary" />
+              <span className="text-text-primary">{task.tally_count}</span>
+            </motion.button>
+            <AnimatePresence>
+              {showPlusOne && (
+                <motion.div
+                  initial={{ opacity: 0, y: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, y: -20, scale: 1 }}
+                  exit={{ opacity: 0, y: -40 }}
+                  className="absolute -top-8 left-0 text-accent-primary font-bold text-sm"
+                >
+                  +1
+                </motion.div>
+              )}
+            </AnimatePresence>
+            {timeSinceTally && (
+              <span className="absolute -bottom-3 left-0 text-[10px] text-text-muted whitespace-nowrap">
+                {timeSinceTally}
+              </span>
+            )}
+          </div>
 
           <motion.button
             whileTap={{ scale: 0.9 }}
@@ -98,6 +151,16 @@ export function TaskCard({ task, onComplete, onTally, onPomodoro, onTimer, onCli
               {Math.floor(task.total_time_seconds / 60)}m
             </span>
           </motion.button>
+        </div>
+
+        {/* Tally Progress */}
+        <div className="mt-2">
+          <ProgressBar 
+            value={task.tally_count} 
+            max={task.tally_goal} 
+            color={task.tally_count >= task.tally_goal ? "success" : "primary"}
+            showLabel={false}
+          />
         </div>
 
         {task.tags && task.tags.length > 0 && (

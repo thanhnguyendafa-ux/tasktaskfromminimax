@@ -25,6 +25,7 @@ export interface Task {
   // Tally System
   tally_count: number;
   tally_goal: number;
+  last_tally_at: string | null;
   
   // Pomodoro System
   pomodoro_count: number;

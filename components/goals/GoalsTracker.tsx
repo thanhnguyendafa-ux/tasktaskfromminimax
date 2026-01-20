@@ -48,7 +48,11 @@ export function GoalsTracker({ goals, onAddGoal, onUpdateProgress, onDeleteGoal 
   };
 
   const isOverdue = (deadline: string) => {
-    return new Date(deadline) < new Date();
+    const deadlineDate = new Date(deadline);
+    const now = new Date();
+    const deadlineUTC = Date.UTC(deadlineDate.getFullYear(), deadlineDate.getMonth(), deadlineDate.getDate());
+    const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    return deadlineUTC < nowUTC;
   };
 
   return (
@@ -69,7 +73,7 @@ export function GoalsTracker({ goals, onAddGoal, onUpdateProgress, onDeleteGoal 
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div className="text-center p-3 bg-dark-tertiary rounded-xl">
             <p className="text-2xl font-bold text-text-primary">{goals.length}</p>
             <p className="text-xs text-text-muted">Total</p>

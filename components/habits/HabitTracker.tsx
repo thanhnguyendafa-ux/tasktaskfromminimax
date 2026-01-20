@@ -66,7 +66,7 @@ export function HabitTracker({ habits, onAddHabit, onCompleteHabit, onDeleteHabi
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div className="text-center p-3 bg-dark-tertiary rounded-xl">
             <p className="text-2xl font-bold text-text-primary">{habits.length}</p>
             <p className="text-xs text-text-muted">Total</p>

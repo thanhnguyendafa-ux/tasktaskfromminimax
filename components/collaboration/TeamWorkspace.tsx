@@ -105,7 +105,7 @@ export function TeamWorkspace({
         </div>
 
         {/* Team Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div className="p-3 bg-dark-tertiary rounded-xl text-center">
             <p className="text-xl font-bold text-accent-primary">{totalTeamXP.toLocaleString()}</p>
             <p className="text-xs text-text-muted">Team XP</p>

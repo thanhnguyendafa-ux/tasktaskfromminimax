@@ -140,7 +140,7 @@ export function ExportPanel({ tasks, profile }: ExportPanelProps) {
         </div>
 
         {/* Quick Export */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => { setExportFormat("json"); setShowExportModal(true); }}

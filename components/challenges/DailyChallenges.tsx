@@ -46,7 +46,7 @@ export function DailyChallenges({ challenges, onClaimReward, onUpdateProgress }:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => setSelectedTab("daily")}

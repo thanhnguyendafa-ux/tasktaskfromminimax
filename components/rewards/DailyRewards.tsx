@@ -78,7 +78,7 @@ export function DailyRewards({ rewards, currentStreak, onClaim }: DailyRewardsPr
       </div>
 
       {/* Days Grid */}
-      <div className="grid grid-cols-7 gap-2 mb-4">
+      <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-4">
         {[1, 2, 3, 4, 5, 6, 7].map((day) => {
           const reward = getRewardForDay(day);
           const isClaimed = rewards.find((r) => r.day === day)?.is_claimed;
@@ -119,18 +119,18 @@ export function DailyRewards({ rewards, currentStreak, onClaim }: DailyRewardsPr
       </div>
 
       {/* Claim Button */}
-      {rewards.filter((r) => r.is_claimed).length < Math.min(currentStreak, 7) && (
-        <Button
-          className="w-full"
-          onClick={() => {
-            const nextUnclaimed = rewards.find((r) => r.day <= currentStreak && !r.is_claimed);
-            if (nextUnclaimed) onClaim(nextUnclaimed.day);
-          }}
-        >
-          <Gift className="w-4 h-4 mr-2" />
-          Claim Today&apos;s Reward
-        </Button>
-      )}
+      {(() => {
+        const nextUnclaimed = rewards.find((r) => r.day <= currentStreak && !r.is_claimed);
+        return nextUnclaimed ? (
+          <Button
+            className="w-full"
+            onClick={() => onClaim(nextUnclaimed.day)}
+          >
+            <Gift className="w-4 h-4 mr-2" />
+            Claim Today&apos;s Reward
+          </Button>
+        ) : null;
+      })()}
 
       {/* Info */}
       <div className="mt-4 p-3 bg-dark-tertiary rounded-xl">
