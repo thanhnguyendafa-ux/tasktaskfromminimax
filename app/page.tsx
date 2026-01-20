@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Flame, Coins, Trophy, Plus } from "lucide-react";
+import { Flame, Coins, Trophy, Plus, Target, Gift, Users, BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Avatar } from "@/components/ui/Avatar";
@@ -12,15 +12,99 @@ import { ThemeSwitcher } from "@/components/common/ThemeSwitcher";
 import { ViewSwitcher } from "@/components/common/ViewSwitcher";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { TaskForm } from "@/components/tasks/TaskForm";
+import { TaskDetailTracking } from "@/components/tasks/TaskDetailTracking";
+import { HabitTracker } from "@/components/habits/HabitTracker";
+import { GoalsTracker } from "@/components/goals/GoalsTracker";
+import { DailyChallenges } from "@/components/challenges/DailyChallenges";
+import { DailyRewards } from "@/components/rewards/DailyRewards";
+import { ProductivityAnalytics } from "@/components/analytics/ProductivityAnalytics";
+import { CollectionBadges } from "@/components/badges/CollectionBadges";
+import { ExportPanel } from "@/components/export/ExportPanel";
+import { OfflineManager } from "@/components/offline/OfflineManager";
+import { TeamWorkspace } from "@/components/collaboration/TeamWorkspace";
+import { PetFeeding } from "@/components/pet/PetFeeding";
+import { PetEvolution } from "@/components/pet/PetEvolution";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { useUserStore } from "@/stores/useUserStore";
-import { Task } from "@/types";
+import { Task, Habit, Goal, Challenge, DailyReward, UserStats } from "@/types";
 
 export default function HomePage() {
   const [currentPage, setCurrentPage] = useState("home");
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showDetailTracking, setShowDetailTracking] = useState(false);
+  const [showTeamWorkspace, setShowTeamWorkspace] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { tasks, setTasks, updateTask } = useTaskStore();
   const { profile, addXp, addCoins } = useUserStore();
+
+  // Demo data for integrated components
+  const [habits, setHabits] = useState<Habit[]>([
+    { id: "1", user_id: "demo", name: "Morning jog", icon: "🏃", color: "#10b981", frequency: "daily", target_count: 1, current_count: 1, streak: 7, best_streak: 14, is_active: true, created_at: new Date().toISOString() },
+    { id: "2", user_id: "demo", name: "Read 30 min", icon: "📚", color: "#6366f1", frequency: "daily", target_count: 1, current_count: 0, streak: 3, best_streak: 10, is_active: true, created_at: new Date().toISOString() },
+    { id: "3", user_id: "demo", name: "Drink water", icon: "💧", color: "#0ea5e9", frequency: "daily", target_count: 8, current_count: 5, streak: 12, best_streak: 20, is_active: true, created_at: new Date().toISOString() },
+  ]);
+
+  const [goals, setGoals] = useState<Goal[]>([
+    { id: "1", user_id: "demo", title: "Complete 100 tasks", description: "Q1 2025 goal", target_value: 100, current_value: 45, reward_xp: 400, reward_coins: 200, deadline: "2025-03-31", is_completed: false, created_at: new Date().toISOString() },
+    { id: "2", user_id: "demo", title: "Reach Level 10", description: "Level up!", target_value: 10000, current_value: 4500, reward_xp: 1000, reward_coins: 500, deadline: "2025-06-30", is_completed: false, created_at: new Date().toISOString() },
+  ]);
+
+  const [challenges, setChallenges] = useState<Challenge[]>([
+    { id: "1", user_id: "demo", title: "Complete 5 tasks today", description: "Daily task challenge", type: "daily", target: 5, current_progress: 3, reward_xp: 50, reward_coins: 25, is_completed: false, expires_at: new Date(Date.now() + 86400000).toISOString(), created_at: new Date().toISOString() },
+    { id: "2", user_id: "demo", title: "Do 10 pomodoros", description: "Focus challenge", type: "daily", target: 10, current_progress: 6, reward_xp: 75, reward_coins: 30, is_completed: false, expires_at: new Date(Date.now() + 86400000).toISOString(), created_at: new Date().toISOString() },
+    { id: "3", user_id: "demo", title: "Maintain 7-day streak", description: "Weekly streak challenge", type: "weekly", target: 7, current_progress: 4, reward_xp: 200, reward_coins: 100, is_completed: false, expires_at: new Date(Date.now() + 604800000).toISOString(), created_at: new Date().toISOString() },
+  ]);
+
+  const [dailyRewards, setDailyRewards] = useState<DailyReward[]>([
+    { day: 1, coins: 10, item_rarity: null, is_claimed: true },
+    { day: 2, coins: 15, item_rarity: null, is_claimed: true },
+    { day: 3, coins: 20, item_rarity: "uncommon", is_claimed: false },
+    { day: 4, coins: 25, item_rarity: null, is_claimed: false },
+    { day: 5, coins: 30, item_rarity: "rare", is_claimed: false },
+    { day: 6, coins: 35, item_rarity: null, is_claimed: false },
+    { day: 7, coins: 50, item_rarity: "epic", is_claimed: false },
+  ]);
+
+  const userStats: UserStats = {
+    total_tasks_completed: 156,
+    total_pomodoros: 423,
+    total_time_seconds: 75600,
+    current_streak: 7,
+    best_streak: 14,
+    level: profile?.level || 8,
+    xp: profile?.xp || 4500,
+    coins: profile?.coins || 2450,
+  };
+
+  const weeklyData = [
+    { day: "Mon", tasks: 5, hours: 4.5 },
+    { day: "Tue", tasks: 7, hours: 6.0 },
+    { day: "Wed", tasks: 4, hours: 3.5 },
+    { day: "Thu", tasks: 8, hours: 7.0 },
+    { day: "Fri", tasks: 6, hours: 5.5 },
+    { day: "Sat", tasks: 3, hours: 2.0 },
+    { day: "Sun", tasks: 2, hours: 1.5 },
+  ];
+
+  const collectionBadges = [
+    { id: "1", name: "First Step", description: "Complete first task", icon: "🎯", requirement: "Complete 1 task", xpReward: 50, isUnlocked: true },
+    { id: "2", name: "Week Warrior", description: "7-day streak", icon: "🔥", requirement: "7-day streak", xpReward: 100, isUnlocked: true },
+    { id: "3", name: "Century Club", description: "100 tasks", icon: "🏆", requirement: "100 tasks", xpReward: 200, isUnlocked: false },
+    { id: "4", name: "Pomodoro Pro", description: "100 pomodoros", icon: "🍅", requirement: "100 pomodoros", xpReward: 150, isUnlocked: true },
+  ];
+
+  const teamMembers = [
+    { id: "1", name: "John", role: "admin" as const, xp: 1500, tasksCompleted: 45, isOnline: true },
+    { id: "2", name: "Sarah", role: "editor" as const, xp: 1200, tasksCompleted: 38, isOnline: true },
+    { id: "3", name: "Mike", role: "viewer" as const, xp: 980, tasksCompleted: 25, isOnline: false },
+  ];
+
+  const teamTasks = [
+    { id: "1", title: "Q1 Planning", assignedTo: ["1", "2"], status: "in_progress" as const, dueDate: "2025-01-25" },
+    { id: "2", title: "Bug Fixes", assignedTo: ["3"], status: "pending" as const, dueDate: "2025-01-22" },
+    { id: "3", title: "Code Review", assignedTo: ["1"], status: "completed" as const, dueDate: "2025-01-20" },
+  ];
 
   const pendingTasks = tasks.filter((t) => t.status === "pending");
   const completedToday = tasks.filter(
@@ -51,8 +135,50 @@ export default function HomePage() {
   };
 
   const handleTaskClick = (task: Task) => {
-    // Navigate to task detail
-    console.log("Task clicked:", task.id);
+    setSelectedTask(task);
+    setShowDetailTracking(true);
+  };
+
+  const handleAddHabit = (habit: Omit<Habit, "id" | "user_id" | "created_at" | "streak" | "best_streak" | "current_count">) => {
+    setHabits([...habits, { ...habit, id: crypto.randomUUID(), user_id: "demo", current_count: 0, streak: 0, best_streak: 0, created_at: new Date().toISOString() }]);
+  };
+
+  const handleCompleteHabit = (habitId: string) => {
+    setHabits(habits.map((h) => h.id === habitId ? { ...h, current_count: h.current_count + 1, streak: h.streak + 1 } : h));
+  };
+
+  const handleDeleteHabit = (habitId: string) => {
+    setHabits(habits.filter((h) => h.id !== habitId));
+  };
+
+  const handleAddGoal = (goal: Omit<Goal, "id" | "user_id" | "created_at" | "current_value" | "is_completed">) => {
+    setGoals([...goals, { ...goal, id: crypto.randomUUID(), user_id: "demo", current_value: 0, is_completed: false, created_at: new Date().toISOString() }]);
+  };
+
+  const handleUpdateGoalProgress = (goalId: string, increment: number) => {
+    setGoals(goals.map((g) => g.id === goalId ? { ...g, current_value: g.current_value + increment } : g));
+  };
+
+  const handleDeleteGoal = (goalId: string) => {
+    setGoals(goals.filter((g) => g.id !== goalId));
+  };
+
+  const handleClaimChallenge = (challengeId: string) => {
+    setChallenges(challenges.map((c) => c.id === challengeId ? { ...c, is_completed: true } : c));
+    addXp(50);
+    addCoins(25);
+  };
+
+  const handleUpdateChallengeProgress = (challengeId: string, increment: number) => {
+    setChallenges(challenges.map((c) => c.id === challengeId ? { ...c, current_progress: c.current_progress + increment } : c));
+  };
+
+  const handleClaimDailyReward = (day: number) => {
+    setDailyRewards(dailyRewards.map((r) => r.day === day ? { ...r, is_claimed: true } : r));
+    const reward = dailyRewards.find((r) => r.day === day);
+    if (reward) {
+      addCoins(reward.coins);
+    }
   };
 
   const renderContent = () => {
@@ -71,7 +197,23 @@ export default function HomePage() {
                   <p className="text-sm text-text-muted">Let&apos;s be productive today!</p>
                 </div>
               </div>
-              <ThemeSwitcher />
+              <div className="flex items-center gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2 rounded-lg bg-dark-tertiary"
+                  onClick={() => setShowAnalytics(true)}
+                >
+                  <BarChart3 className="w-5 h-5 text-text-primary" />
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2 rounded-lg bg-dark-tertiary"
+                  onClick={() => setShowTeamWorkspace(true)}
+                >
+                  <Users className="w-5 h-5 text-text-primary" />
+                </motion.button>
+                <ThemeSwitcher />
+              </div>
             </div>
 
             {/* Stats Cards */}
@@ -93,6 +235,13 @@ export default function HomePage() {
               </Card>
             </div>
 
+            {/* Daily Rewards */}
+            <DailyRewards
+              rewards={dailyRewards}
+              currentStreak={profile?.streak_days || 0}
+              onClaim={handleClaimDailyReward}
+            />
+
             {/* XP Progress */}
             <Card>
               <div className="flex justify-between mb-2">
@@ -103,6 +252,29 @@ export default function HomePage() {
               </div>
               <ProgressBar value={profile?.xp || 0} max={((profile?.level || 1) + 1) * 100} color="warning" />
             </Card>
+
+            {/* Daily Challenges */}
+            <DailyChallenges
+              challenges={challenges}
+              onClaimReward={handleClaimChallenge}
+              onUpdateProgress={handleUpdateChallengeProgress}
+            />
+
+            {/* Habits */}
+            <HabitTracker
+              habits={habits}
+              onAddHabit={handleAddHabit}
+              onCompleteHabit={handleCompleteHabit}
+              onDeleteHabit={handleDeleteHabit}
+            />
+
+            {/* Goals */}
+            <GoalsTracker
+              goals={goals}
+              onAddGoal={handleAddGoal}
+              onUpdateProgress={handleUpdateGoalProgress}
+              onDeleteGoal={handleDeleteGoal}
+            />
 
             {/* Today's Progress */}
             <Card>
@@ -211,11 +383,22 @@ export default function HomePage() {
         return (
           <div className="p-4 space-y-4 pb-20">
             <h1 className="text-xl font-bold text-text-primary">Your Pet</h1>
-            <Card className="text-center py-8">
-              <div className="text-8xl mb-4">🐱</div>
-              <h2 className="text-xl font-semibold text-text-primary">Your Pet</h2>
-              <p className="text-text-muted mt-2">Feed and play with your pet!</p>
-            </Card>
+            <PetFeeding
+              petName="Coffee Cup"
+              currentHunger={80}
+              userCoins={profile?.coins || 0}
+              onFeed={(food) => console.log("Feed:", food)}
+            />
+            <PetEvolution
+              petName="Coffee Cup"
+              petType="cat"
+              currentLevel={3}
+              currentXP={450}
+              evolutionStage={2}
+              feedCount={20}
+              playCount={15}
+              onEvolve={() => console.log("Evolve!")}
+            />
           </div>
         );
 
@@ -238,6 +421,8 @@ export default function HomePage() {
               <h2 className="text-xl font-semibold text-text-primary mt-4">{profile?.display_name || "User"}</h2>
               <p className="text-text-muted">Level {profile?.level || 1}</p>
             </Card>
+            <ExportPanel tasks={tasks} profile={{ id: "demo", display_name: "User", email: "user@example.com" }} />
+            <OfflineManager isOnline={true} pendingChanges={0} lastSyncTime={new Date()} onSync={() => {}} onClearCache={() => {}} />
           </div>
         );
 
@@ -271,6 +456,54 @@ export default function HomePage() {
         }}
         tags={[]}
       />
+      {showDetailTracking && selectedTask && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowDetailTracking(false)}>
+          <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <TaskDetailTracking
+              task={selectedTask}
+              onUpdateTally={(increment) => updateTask(selectedTask.id, { tally_count: selectedTask.tally_count + increment })}
+              onStartPomodoro={() => updateTask(selectedTask.id, { pomodoro_count: selectedTask.pomodoro_count + 1 })}
+              onStopPomodoro={() => {}}
+              onStartTimer={() => updateTask(selectedTask.id, { total_time_seconds: selectedTask.total_time_seconds + 900 })}
+              onStopTimer={() => {}}
+              onAddManualTime={(minutes) => updateTask(selectedTask.id, { total_time_seconds: selectedTask.total_time_seconds + minutes * 60 })}
+              onUpdateReminder={(enabled, interval) => updateTask(selectedTask.id, { reminder_enabled: enabled, reminder_interval: interval })}
+              onUpdateGoal={(goal) => console.log("Update goal:", goal)}
+            />
+          </div>
+        </div>
+      )}
+      {showTeamWorkspace && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowTeamWorkspace(false)}>
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <TeamWorkspace
+              teamName="Engineering"
+              members={teamMembers}
+              tasks={teamTasks}
+              currentUserId="1"
+              onInviteMember={(email) => console.log("Invite:", email)}
+              onAssignTask={(taskId, userId) => console.log("Assign:", taskId, userId)}
+              onCreateTask={(task) => console.log("Create:", task)}
+            />
+          </div>
+        </div>
+      )}
+      {showAnalytics && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowAnalytics(false)}>
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-dark-primary rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-text-primary">Analytics</h2>
+                <button onClick={() => setShowAnalytics(false)} className="text-text-muted">✕</button>
+              </div>
+              <ProductivityAnalytics stats={userStats} weeklyData={weeklyData} />
+              <div className="mt-4">
+                <CollectionBadges badges={collectionBadges} onClaim={(id) => console.log("Claim badge:", id)} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
