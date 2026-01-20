@@ -6,7 +6,7 @@ import { CheckCircle, Clock, Play, Plus, Grid, List, Bell, BellOff, Calendar } f
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
-import { formatDuration } from "@/lib/formatDuration";
+import { formatTimeProgressive } from "@/lib/formatDuration";
 
 interface TaskGalleryViewProps {
   tasks: Task[];
@@ -94,7 +94,7 @@ export function TaskGalleryView({
     return "inactive";
   };
 
-  const formatTime = (seconds: number) => formatDuration(seconds, 'short');
+  const formatTime = formatTimeProgressive;
 
   const priorityVariant = {
     low: "low" as const,

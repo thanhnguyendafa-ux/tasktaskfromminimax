@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Modal } from "@/components/ui/Modal";
 import { Task } from "@/types";
-import { formatTimerDisplay } from "@/lib/formatDuration";
+import { formatTimeProgressive } from "@/lib/formatDuration";
 
 interface TaskDetailTrackingProps {
   task: Task;
@@ -79,7 +79,7 @@ export function TaskDetailTracking({
     return () => clearInterval(interval);
   }, [isPomodoroRunning, pomodoroTime]);
 
-  const formatTime = formatTimerDisplay;
+  const formatTime = formatTimeProgressive;
 
   const tallyProgress = Math.min(100, (task.tally_count / tallyGoal) * 100);
 

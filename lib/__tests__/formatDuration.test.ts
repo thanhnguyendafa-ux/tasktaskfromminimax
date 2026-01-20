@@ -4,6 +4,7 @@ import {
   formatDurationI18n,
   formatTimerDisplay,
   formatCompactDuration,
+  formatTimeProgressive,
   TimeFormat,
 } from '../formatDuration';
 
@@ -395,5 +396,51 @@ describe('format consistency', () => {
     expect(formatDuration(5, 'with-seconds')).toBe('0:05');
     expect(formatDuration(65, 'with-seconds')).toBe('1:05');
     expect(formatDuration(3605, 'with-seconds')).toBe('1:00:05');
+  });
+});
+
+describe('formatTimeProgressive', () => {
+  it('should format seconds less than a minute', () => {
+    expect(formatTimeProgressive(0)).toBe('0s');
+    expect(formatTimeProgressive(1)).toBe('1s');
+    expect(formatTimeProgressive(30)).toBe('30s');
+    expect(formatTimeProgressive(59)).toBe('59s');
+  });
+
+  it('should format minutes and seconds', () => {
+    expect(formatTimeProgressive(60)).toBe('1m');
+    expect(formatTimeProgressive(90)).toBe('1m 30s');
+    expect(formatTimeProgressive(125)).toBe('2m 5s');
+    expect(formatTimeProgressive(3599)).toBe('59m 59s');
+  });
+
+  it('should format hours minutes seconds', () => {
+    expect(formatTimeProgressive(3600)).toBe('1h');
+    expect(formatTimeProgressive(3661)).toBe('1h 1m 1s');
+    expect(formatTimeProgressive(5400)).toBe('1h 30m');
+    expect(formatTimeProgressive(7200)).toBe('2h');
+    expect(formatTimeProgressive(86399)).toBe('23h 59m 59s');
+  });
+
+  it('should format days hours minutes', () => {
+    expect(formatTimeProgressive(86400)).toBe('1d');
+    expect(formatTimeProgressive(90000)).toBe('1d 1h');
+    expect(formatTimeProgressive(172800)).toBe('2d');
+    expect(formatTimeProgressive(176400)).toBe('2d 1h');
+  });
+
+  it('should handle negative values', () => {
+    expect(formatTimeProgressive(-1)).toBe('0s');
+    expect(formatTimeProgressive(-3600)).toBe('0s');
+  });
+
+  it('should handle edge cases', () => {
+    expect(formatTimeProgressive(1)).toBe('1s');
+    expect(formatTimeProgressive(59)).toBe('59s');
+    expect(formatTimeProgressive(60)).toBe('1m');
+    expect(formatTimeProgressive(3599)).toBe('59m 59s');
+    expect(formatTimeProgressive(3600)).toBe('1h');
+    expect(formatTimeProgressive(86399)).toBe('23h 59m 59s');
+    expect(formatTimeProgressive(86400)).toBe('1d');
   });
 });

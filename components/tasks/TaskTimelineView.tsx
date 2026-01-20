@@ -6,7 +6,7 @@ import { Clock, Play, Calendar, Bell, BellOff } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
-import { formatDuration } from "@/lib/formatDuration";
+import { formatTimeProgressive } from "@/lib/formatDuration";
 
 interface TaskTimelineViewProps {
   tasks: Task[];
@@ -63,7 +63,7 @@ export function TaskTimelineView({ tasks, onClick }: TaskTimelineViewProps) {
     return "Just now";
   };
 
-  const formatTime = (seconds: number) => formatDuration(seconds, 'short');
+  const formatTime = formatTimeProgressive;
 
   const hours = Array.from({ length: 10 }, (_, i) => i + 9); // 9 AM to 6 PM
 

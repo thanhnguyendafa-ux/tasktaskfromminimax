@@ -6,7 +6,7 @@ import { CheckCircle, Clock, Play, Plus, Bell, BellOff, AlertCircle } from "luci
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
-import { formatDuration } from "@/lib/formatDuration";
+import { formatTimeProgressive } from "@/lib/formatDuration";
 
 interface TaskListViewProps {
   tasks: Task[];
@@ -104,7 +104,7 @@ export function TaskListView({
     return "inactive";
   };
 
-  const formatTime = (seconds: number) => formatDuration(seconds, 'short');
+  const formatTime = formatTimeProgressive;
 
   const filteredTasks = tasks
     .filter((task) => filterStatus === "all" || task.status === filterStatus)

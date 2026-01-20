@@ -34,7 +34,7 @@ describe('TimerTracker', () => {
 
   it('should display total time correctly', () => {
     render(<TimerTracker {...defaultProps} totalSeconds={3661} />);
-    expect(screen.getByText((content) => content.includes('1:01:01'))).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('1h 1m 1s'))).toBeInTheDocument();
   });
 
   it('should show progress bar when estimated time is set', () => {
