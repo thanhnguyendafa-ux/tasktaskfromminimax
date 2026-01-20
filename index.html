@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskTask - Quản lý công việc</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 TaskTask</h1>
+            <p>Quản lý công việc của bạn</p>
+        </header>
+
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Nhập công việc mới...">
+            <input type="date" id="dueDateInput">
+            <select id="priorityInput">
+                <option value="low">Thấp</option>
+                <option value="medium" selected>Trung bình</option>
+                <option value="high">Cao</option>
+            </select>
+            <button id="addTaskBtn">Thêm</button>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">Tất cả</button>
+            <button class="filter-btn" data-filter="pending">Chưa hoàn thành</button>
+            <button class="filter-btn" data-filter="completed">Đã hoàn thành</button>
+        </div>
+
+        <div class="stats">
+            <span>Tổng: <strong id="totalCount">0</strong></span>
+            <span>Hoàn thành: <strong id="completedCount">0</strong></span>
+            <span>Còn lại: <strong id="remainingCount">0</strong></span>
+        </div>
+
+        <ul id="taskList"></ul>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

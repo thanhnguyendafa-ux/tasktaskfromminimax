@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 245, 245, 245;
+  --background-start-rgb: 26, 26, 46;
+  --background-end-rgb: 22, 33, 62;
+}
+
+@layer base {
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--background-start-rgb)),
+      rgb(var(--background-end-rgb))
+    );
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .text-primary {
+    color: #f5f5f5;
+  }
+  .text-secondary {
+    color: #a0a0a0;
+  }
+  .text-muted {
+    color: #6b6b6b;
+  }
+  .bg-primary {
+    background-color: #1a1a2e;
+  }
+  .bg-secondary {
+    background-color: #16213e;
+  }
+  .bg-tertiary {
+    background-color: #0f3460;
+  }
+  .bg-surface {
+    background-color: #1e1e2e;
+  }
+  .border-primary {
+    border-color: #0f3460;
+  }
+  .accent-primary {
+    color: #e94560;
+  }
+  .accent-gold {
+    color: #d4af37;
+  }
+  
+  /* Safe area for mobile bottom */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Hide scrollbar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom animations */
+@keyframes pulse-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 1s ease-in-out infinite;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #e94560;
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: #e94560;
+  color: white;
+}
