@@ -13,6 +13,12 @@ import { ViewSwitcher } from "@/components/common/ViewSwitcher";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { TaskDetailTracking } from "@/components/tasks/TaskDetailTracking";
+import { FilterChips } from "@/components/tasks/FilterChips";
+import { SearchBar } from "@/components/tasks/SearchBar";
+import { FilterPanel } from "@/components/tasks/FilterPanel";
+import { TaskBottomSheet } from "@/components/tasks/TaskBottomSheet";
+import { FABMenu } from "@/components/tasks/FABMenu";
+import { TaskCardSkeleton, EmptyState } from "@/components/tasks/TaskSkeleton";
 import { HabitTracker } from "@/components/habits/HabitTracker";
 import { GoalsTracker } from "@/components/goals/GoalsTracker";
 import { DailyChallenges } from "@/components/challenges/DailyChallenges";
@@ -31,6 +37,14 @@ import { useUserStore } from "@/stores/useUserStore";
 import { Task, Habit, Goal, Challenge, DailyReward, UserStats, ViewType } from "@/types";
 import { TaskViewFactory } from "@/components/tasks/TaskViewFactory";
 
+interface FilterState {
+  status: string[];
+  priority: string[];
+  dateRange: { start: string | null; end: string | null };
+  tags: string[];
+  sortBy: string;
+}
+
 export default function HomePage() {
   const [currentPage, setCurrentPage] = useState("home");
   const [currentView, setCurrentView] = useState<ViewType>("list");
@@ -39,6 +53,16 @@ export default function HomePage() {
   const [showTeamWorkspace, setShowTeamWorkspace] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [filters, setFilters] = useState<FilterState>({
+    status: [],
+    priority: [],
+    dateRange: { start: null, end: null },
+    tags: [],
+    sortBy: "dueDate",
+  });
   const { tasks, setTasks, updateTask, startTimer } = useTaskStore();
   const { profile, addXp, addCoins } = useUserStore();
 
@@ -377,33 +401,121 @@ export default function HomePage() {
       case "tasks":
         return (
           <div className="p-4 space-y-4 pb-20">
-            <div className="flex items-center justify-between">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-3">
               <h1 className="text-xl font-bold text-text-primary">Tasks</h1>
               <div className="flex items-center gap-2">
                 <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
                 <ThemeSwitcher />
               </div>
             </div>
+
+            {/* Search Bar */}
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search tasks..."
+            />
+
+            {/* Filter Chips */}
+            <FilterChips
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
+              taskCounts={{
+                all: tasks.length,
+                today: tasks.filter(t => {
+                  const today = new Date().toDateString();
+                  return t.due_date && new Date(t.due_date).toDateString() === today;
+                }).length,
+                overdue: tasks.filter(t => {
+                  return t.due_date && new Date(t.due_date) < new Date() && t.status !== 'completed';
+                }).length,
+                high: tasks.filter(t => t.priority === 'high' && t.status !== 'completed').length,
+                completed: tasks.filter(t => t.status === 'completed').length,
+              }}
+            />
+
+            {/* Filter Panel Toggle */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowFilterPanel(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-dark-tertiary rounded-lg text-sm text-text-secondary"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              Filters
+              {(filters.status.length > 0 || filters.priority.length > 0 || filters.tags.length > 0) && (
+                <span className="px-2 py-0.5 bg-accent-primary rounded-full text-xs text-white">
+                  {(filters.status.length + filters.priority.length + filters.tags.length)}
+                </span>
+              )}
+            </motion.button>
+
+            {/* Task List */}
             {tasks.length === 0 ? (
-              <Card className="text-center py-8">
-                <p className="text-text-muted">No tasks yet</p>
-              </Card>
-            ) : (
-              <TaskViewFactory
-                view={currentView}
-                tasks={tasks}
-                onComplete={handleCompleteTask}
-                onTally={handleTally}
-                onPomodoro={handlePomodoro}
-                onTimer={handleTimer}
-                onStatusChange={(taskId, status) => {
-                  const task = tasks.find(t => t.id === taskId);
-                  if (task) {
-                    updateTask(taskId, { status });
-                  }
-                }}
-                onClick={handleTaskClick}
+              <EmptyState
+                icon={<svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>}
+                title="No tasks yet"
+                description="Create your first task to get started!"
+                action={
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowTaskForm(true)}
+                    className="px-4 py-2 bg-accent-primary rounded-xl text-white font-medium"
+                  >
+                    + Create Task
+                  </motion.button>
+                }
               />
+            ) : (
+              <div className="space-y-3">
+                {tasks
+                  .filter(task => {
+                    // Search filter
+                    if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+                      return false;
+                    }
+                    // Quick filter
+                    if (activeFilter === 'today') {
+                      const today = new Date().toDateString();
+                      return task.due_date && new Date(task.due_date).toDateString() === today;
+                    }
+                    if (activeFilter === 'overdue') {
+                      return task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
+                    }
+                    if (activeFilter === 'high') {
+                      return task.priority === 'high' && task.status !== 'completed';
+                    }
+                    if (activeFilter === 'completed') {
+                      return task.status === 'completed';
+                    }
+                    return true;
+                  })
+                  .map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onComplete={handleCompleteTask}
+                      onTally={handleTally}
+                      onPomodoro={handlePomodoro}
+                      onTimer={handleTimer}
+                      onEdit={(t) => {
+                        setSelectedTask(t);
+                        setShowTaskForm(true);
+                      }}
+                      onDelete={(id) => {
+                        setTasks(tasks.filter(t => t.id !== id));
+                      }}
+                      onArchive={(id) => {
+                        updateTask(id, { status: 'completed' });
+                      }}
+                      onClick={() => handleTaskClick(task)}
+                    />
+                  ))}
+              </div>
             )}
           </div>
         );
@@ -554,6 +666,53 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Filter Panel */}
+      <FilterPanel
+        isOpen={showFilterPanel}
+        onClose={() => setShowFilterPanel(false)}
+        filters={filters}
+        onApply={setFilters}
+        onClear={() => setFilters({
+          status: [],
+          priority: [],
+          dateRange: { start: null, end: null },
+          tags: [],
+          sortBy: "dueDate",
+        })}
+      />
+
+      {/* Task Bottom Sheet */}
+      <TaskBottomSheet
+        task={selectedTask}
+        isOpen={!!selectedTask && !showTaskForm && !showDetailTracking}
+        onClose={() => setSelectedTask(null)}
+        onComplete={handleCompleteTask}
+        onEdit={(task) => {
+          setSelectedTask(task);
+          setShowTaskForm(true);
+        }}
+        onDelete={(id) => {
+          setTasks(tasks.filter(t => t.id !== id));
+          setSelectedTask(null);
+        }}
+        onArchive={(id) => {
+          updateTask(id, { status: 'completed' });
+          setSelectedTask(null);
+        }}
+        onTally={handleTally}
+        onPomodoro={handlePomodoro}
+        onTimer={handleTimer}
+      />
+
+      {/* FAB Menu */}
+      <FABMenu
+        onCreateTask={(type) => {
+          console.log("Create task type:", type);
+          setShowTaskForm(true);
+        }}
+      />
+
       <TimerBar />
     </div>
   );
