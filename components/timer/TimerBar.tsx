@@ -6,7 +6,7 @@ import { Pause, Square, ChevronUp, ChevronDown } from "lucide-react";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { useTimerStore } from "@/stores/useTimerStore";
 import { useUserStore } from "@/stores/useUserStore";
-import { formatDuration } from "@/lib/formatDuration";
+import { formatTimeProgressive } from "@/lib/formatDuration";
 import { Task } from "@/types";
 
 export function TimerBar() {
@@ -29,13 +29,13 @@ export function TimerBar() {
         const elapsed =
           activeTask.total_time_seconds +
           (Date.now() - new Date(activeTask.timer_started_at!).getTime()) / 1000;
-        setDisplayTime(formatDuration(elapsed));
+        setDisplayTime(formatTimeProgressive(elapsed));
       };
       updateTime();
       const interval = setInterval(updateTime, 1000);
       return () => clearInterval(interval);
     } else if (activeTask) {
-      setDisplayTime(formatDuration(activeTask.total_time_seconds));
+      setDisplayTime(formatTimeProgressive(activeTask.total_time_seconds));
     }
   }, [activeTaskId, activeTask]);
 
@@ -161,13 +161,13 @@ export function TimerBar() {
               <div className="grid grid-cols-3 gap-4 text-center text-sm">
                 <div>
                   <p className="text-blue-300 text-xs">Total Time</p>
-                  <p className="font-mono">{formatDuration(activeTask.total_time_seconds)}</p>
+                  <p className="font-mono">{formatTimeProgressive(activeTask.total_time_seconds)}</p>
                 </div>
                 <div>
                   <p className="text-blue-300 text-xs">Estimated</p>
                   <p className="font-mono">
                     {activeTask.estimated_time_seconds
-                      ? formatDuration(activeTask.estimated_time_seconds)
+                      ? formatTimeProgressive(activeTask.estimated_time_seconds)
                       : '--'}
                   </p>
                 </div>

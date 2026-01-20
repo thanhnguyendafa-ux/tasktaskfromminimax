@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Clock, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { formatTimeProgressive } from "@/lib/formatDuration";
 import { useTaskStore } from "@/stores/useTaskStore";
 
 interface TimeAwayTrackerProps {
@@ -74,11 +75,7 @@ export function TimeAwayTracker({ taskId, onTimeAwayUpdate }: TimeAwayTrackerPro
     };
   }, [timeAway, updateActivity]);
 
-  const formatTime = (seconds: number) => {
-    if (seconds < 60) return `${seconds}s`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-    return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
-  };
+  const formatTime = formatTimeProgressive;
 
   const getUrgency = () => {
     if (timeAway < 300) return "low"; // 5 min

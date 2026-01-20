@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, TrendingUp, Calendar, Award } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
-import { formatDuration, formatCompactDuration } from "@/lib/formatDuration";
+import { formatTimeProgressive } from "@/lib/formatDuration";
 import type { TimeTracking, FocusAnalytics } from "@/types";
 
 export function FocusAnalytics() {
@@ -140,7 +140,7 @@ export function FocusAnalytics() {
             <span className="text-sm">Tổng thời gian</span>
           </div>
           <p className="text-2xl font-bold text-text-primary">
-            {formatDuration((analytics?.totalMinutes || 0) * 60)}
+            {formatTimeProgressive((analytics?.totalMinutes || 0) * 60)}
           </p>
         </motion.div>
 
@@ -228,7 +228,7 @@ export function FocusAnalytics() {
                         style={{ width: `${(task.minutes / analytics.topTasks[0].minutes) * 100}%` }}
                       ></div>
                     </div>
-                    <span className="text-xs text-text-muted">{formatDuration(task.minutes * 60)}</span>
+                    <span className="text-xs text-text-muted">{formatTimeProgressive(task.minutes * 60)}</span>
                   </div>
                 </div>
               </div>
@@ -254,7 +254,7 @@ export function FocusAnalytics() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-text-primary">
-                    {formatDuration(session.duration_seconds || 0)}
+                    {formatTimeProgressive(session.duration_seconds || 0)}
                   </p>
                   <p className="text-xs text-green-400">+{session.xp_earned} XP</p>
                 </div>

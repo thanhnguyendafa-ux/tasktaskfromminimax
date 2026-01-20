@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { formatTimeProgressive } from "@/lib/formatDuration";
 import { useUserStore } from "@/stores/useUserStore";
 
 interface PomodoroTimerProps {
@@ -21,11 +22,7 @@ export function PomodoroTimer({ taskId, taskTitle, onComplete, onClose }: Pomodo
   const [sessions, setSessions] = useState(0);
   const { addXp, addCoins } = useUserStore();
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  const formatTime = formatTimeProgressive;
 
   const progress = ((25 * 60 - timeLeft) / (25 * 60)) * 100;
 
