@@ -1,44 +1,57 @@
-export function formatDuration(seconds: number): string {
+export type TimeFormat = 'short' | 'long' | 'with-seconds' | 'compact';
+
+export function formatDuration(seconds: number, format: TimeFormat = 'with-seconds'): string {
   if (seconds < 0) return '0s';
-  
-  const units = [
-    { value: 86400, label: 'd' },
-    { value: 3600, label: 'h' },
-    { value: 60, label: 'm' },
-    { value: 1, label: 's' },
-  ];
-  
-  const parts: string[] = [];
-  let remaining = Math.round(seconds);
-  
-  for (const unit of units) {
-    if (remaining >= unit.value) {
-      const count = Math.floor(remaining / unit.value);
-      parts.push(`${count}${unit.label}`);
-      remaining %= unit.value;
-      if (parts.length >= 2) break;
-    }
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  switch (format) {
+    case 'short':
+      if (hours > 0) return `${hours}h ${minutes}m`;
+      return `${minutes}m`;
+    
+    case 'long':
+      if (hours > 0) return `${hours} hours ${minutes} minutes`;
+      return `${minutes} minutes`;
+    
+    case 'compact':
+      return formatCompactDuration(seconds);
+    
+    case 'with-seconds':
+    default:
+      if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+      }
+      return `${minutes}:${secs.toString().padStart(2, "0")}`;
   }
-  
-  if (parts.length === 0) return '0s';
-  return parts.join(' ');
 }
 
-export function formatLongDuration(seconds: number): string {
-  if (seconds < 0) return '0s';
-  
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
+export function formatDurationI18n(seconds: number, locale: string = 'en'): string {
+  const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = Math.round(seconds % 60);
-  
+
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days}d`);
-  if (hours > 0) parts.push(`${hours}h`);
-  if (minutes > 0) parts.push(`${minutes}m`);
-  if (secs > 0 && seconds < 60) parts.push(`${secs}s`);
   
-  return parts.length > 0 ? parts.join(' ') : '0s';
+  if (hours > 0) {
+    parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+  }
+  
+  if (minutes > 0 || hours === 0) {
+    parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`);
+  }
+  
+  if (secs > 0 && seconds < 60) {
+    parts.push(`${secs} ${secs === 1 ? 'second' : 'seconds'}`);
+  }
+
+  if (parts.length === 0) {
+    return locale.startsWith('vi') ? '0 giây' : '0 seconds';
+  }
+
+  return parts.join(' ');
 }
 
 export function formatCompactDuration(seconds: number): string {
@@ -52,4 +65,26 @@ export function formatCompactDuration(seconds: number): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.round((seconds % 86400) / 3600);
   return h > 0 ? `${d}d ${h}h` : `${d}d`;
+}
+
+export function formatTimerDisplay(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
+}
+
+export function formatTimerSession(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 }

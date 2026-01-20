@@ -6,6 +6,7 @@ import { Clock, Play, Calendar, Bell, BellOff } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
+import { formatDuration } from "@/lib/formatDuration";
 
 interface TaskTimelineViewProps {
   tasks: Task[];
@@ -52,19 +53,17 @@ export function TaskTimelineView({ tasks, onClick }: TaskTimelineViewProps) {
     const now = new Date();
     const then = new Date(timestamp);
     const diff = now.getTime() - then.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    
+
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
     return "Just now";
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    if (mins < 60) return `${mins}m`;
-    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-  };
+  const formatTime = (seconds: number) => formatDuration(seconds, 'short');
 
   const hours = Array.from({ length: 10 }, (_, i) => i + 9); // 9 AM to 6 PM
 

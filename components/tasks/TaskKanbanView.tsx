@@ -6,6 +6,7 @@ import { Plus, Clock, Play, CheckCircle, Bell, BellOff, AlertCircle } from "luci
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
+import { formatDuration } from "@/lib/formatDuration";
 
 interface TaskKanbanViewProps {
   tasks: Task[];
@@ -102,11 +103,7 @@ export function TaskKanbanView({
     return "inactive";
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    if (mins < 60) return `${mins}m`;
-    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-  };
+  const formatTime = (seconds: number) => formatDuration(seconds, 'short');
 
   const getColumnTotals = (status: KanbanStatus) => {
     const columnTasks = getTasksByStatus(status);

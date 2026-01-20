@@ -6,6 +6,7 @@ import { Play, Pause, Square, Plus, RotateCcw } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { formatTimerDisplay } from "@/lib/formatDuration";
 
 interface TimerTrackerProps {
   totalSeconds: number;
@@ -39,17 +40,9 @@ export function TimerTracker({
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, "0")}`;
-  };
-
   const progress = estimatedSeconds > 0 ? Math.min((totalSeconds / estimatedSeconds) * 100, 100) : 0;
+
+  const formatTime = formatTimerDisplay;
 
   const handleStart = () => {
     setIsRunning(true);
