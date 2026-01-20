@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Plus, Minus, Play, CheckCircle } from "lucide-react";
+import { Clock, Plus, Minus, Play, Pause, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Task } from "@/types";
+import { useTimerStore } from "@/stores/useTimerStore";
 
 interface TaskCardProps {
   task: Task;
@@ -20,6 +21,20 @@ interface TaskCardProps {
 export function TaskCard({ task, onComplete, onTally, onPomodoro, onTimer, onClick }: TaskCardProps) {
   const [showPlusOne, setShowPlusOne] = useState(false);
   const [timeSinceTally, setTimeSinceTally] = useState("");
+  const { activeTaskId, isRunning } = useTimerStore();
+  
+  const isTimerRunning = activeTaskId === task.id && isRunning;
+  
+  const formatTimerDisplay = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const timerDisplay = task.timer_status === 'running' && task.timer_started_at
+    ? formatTimerDisplay(task.total_time_seconds + (Date.now() - new Date(task.timer_started_at).getTime()) / 1000)
+    : formatTimerDisplay(task.total_time_seconds);
   
   const priorityVariant = {
     low: "low" as const,
@@ -44,7 +59,7 @@ export function TaskCard({ task, onComplete, onTally, onPomodoro, onTimer, onCli
     setTimeSinceTally(formatTimeSince(task.last_tally_at));
     const interval = setInterval(() => {
       setTimeSinceTally(formatTimeSince(task.last_tally_at));
-    }, 60000); // Update every minute
+    }, 60000);
     return () => clearInterval(interval);
   }, [task.last_tally_at]);
 
@@ -144,11 +159,17 @@ export function TaskCard({ task, onComplete, onTally, onPomodoro, onTimer, onCli
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={(e) => { e.stopPropagation(); onTimer(task.id); }}
-            className="flex items-center gap-1.5 px-2 py-1 bg-dark-tertiary rounded-lg hover:bg-opacity-80"
+            className={`flex items-center gap-1.5 px-2 py-1 bg-dark-tertiary rounded-lg hover:bg-opacity-80 ${
+              isTimerRunning ? 'ring-2 ring-blue-500' : ''
+            }`}
           >
-            <Play className="w-4 h-4 text-blue-500" />
-            <span className="text-text-primary">
-              {Math.floor(task.total_time_seconds / 60)}m
+            {isTimerRunning ? (
+              <Pause className="w-4 h-4 text-blue-500 animate-pulse" />
+            ) : (
+              <Play className="w-4 h-4 text-blue-500" />
+            )}
+            <span className={`text-text-primary font-mono ${isTimerRunning ? 'text-blue-400' : ''}`}>
+              {timerDisplay}
             </span>
           </motion.button>
         </div>

@@ -24,6 +24,7 @@ import { OfflineManager } from "@/components/offline/OfflineManager";
 import { TeamWorkspace } from "@/components/collaboration/TeamWorkspace";
 import { PetFeeding } from "@/components/pet/PetFeeding";
 import { PetEvolution } from "@/components/pet/PetEvolution";
+import { TimerBar } from "@/components/timer/TimerBar";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { Task, Habit, Goal, Challenge, DailyReward, UserStats, ViewType } from "@/types";
@@ -37,7 +38,7 @@ export default function HomePage() {
   const [showTeamWorkspace, setShowTeamWorkspace] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const { tasks, setTasks, updateTask } = useTaskStore();
+  const { tasks, setTasks, updateTask, startTimer } = useTaskStore();
   const { profile, addXp, addCoins } = useUserStore();
 
   // Daily reset for tally counts
@@ -157,8 +158,8 @@ export default function HomePage() {
   };
 
   const handleTimer = (taskId: string) => {
-    // Navigate to timer
-    setCurrentPage("timer");
+    // Start timer for this task - TimerBar will appear
+    startTimer(taskId);
   };
 
   const handleTaskClick = (task: Task) => {
@@ -486,6 +487,10 @@ export default function HomePage() {
             tally_count: 0,
             pomodoro_count: 0,
             total_time_seconds: 0,
+            timer_status: 'idle' as const,
+            timer_started_at: null,
+            timer_paused_at: null,
+            accumulated_time_seconds: 0,
             last_active_at: new Date().toISOString(),
             reminder_enabled: false,
             created_at: new Date().toISOString(),
@@ -543,6 +548,7 @@ export default function HomePage() {
           </div>
         </div>
       )}
+      <TimerBar />
     </div>
   );
 }

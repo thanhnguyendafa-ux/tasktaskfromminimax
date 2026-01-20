@@ -36,6 +36,12 @@ export interface Task {
   total_time_seconds: number;
   estimated_time_seconds: number;
   
+  // Timer State
+  timer_status: 'idle' | 'running' | 'paused';
+  timer_started_at: string | null;
+  timer_paused_at: string | null;
+  accumulated_time_seconds: number;
+  
   // Time Away Tracking
   last_active_at: string;
   last_completed_pomodoro_at: string | null;

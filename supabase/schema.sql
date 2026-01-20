@@ -87,6 +87,12 @@ CREATE TABLE IF NOT EXISTS tasks (
   total_time_seconds INTEGER NOT NULL DEFAULT 0,
   estimated_time_seconds INTEGER NOT NULL DEFAULT 0,
   
+  -- Timer State
+  timer_status TEXT NOT NULL DEFAULT 'idle' CHECK (timer_status IN ('idle', 'running', 'paused')),
+  timer_started_at TIMESTAMPTZ,
+  timer_paused_at TIMESTAMPTZ,
+  accumulated_time_seconds INTEGER NOT NULL DEFAULT 0,
+  
   -- Time Away Tracking
   last_active_at TIMESTAMPTZ DEFAULT NOW(),
   last_completed_pomodoro_at TIMESTAMPTZ,
