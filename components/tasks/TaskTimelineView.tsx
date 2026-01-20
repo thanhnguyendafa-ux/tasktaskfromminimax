@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Play, Calendar } from "lucide-react";
+import { Clock, Play, Calendar, Bell, BellOff } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
@@ -25,6 +25,39 @@ export function TaskTimelineView({ tasks, onClick }: TaskTimelineViewProps) {
       top: (startHour - 9) * 60,
       height: duration * 60,
     };
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const getTimeInfo = (dueDate: string | null) => {
+    if (!dueDate) return { text: "", color: "text-text-muted", urgent: false, overdue: false };
+    
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft < 0) return { text: `${Math.abs(daysLeft)}d overdue`, color: "text-red-400", urgent: true, overdue: true };
+    if (daysLeft === 0) return { text: "Today", color: "text-yellow-400", urgent: true, overdue: false };
+    if (daysLeft === 1) return { text: "1d left", color: "text-yellow-400", urgent: true, overdue: false };
+    if (daysLeft <= 3) return { text: `${daysLeft}d left`, color: "text-orange-400", urgent: false, overdue: false };
+    return { text: `${daysLeft}d left`, color: "text-text-muted", urgent: false, overdue: false };
+  };
+
+  const formatTimeAgo = (timestamp: string | null) => {
+    if (!timestamp) return "-";
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = now.getTime() - then.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
   };
 
   const formatTime = (seconds: number) => {
@@ -130,6 +163,19 @@ export function TaskTimelineView({ tasks, onClick }: TaskTimelineViewProps) {
                         <span>{timeBlock.duration}h</span>
                         <Play className="w-3 h-3" />
                         <span>{formatTime(task.total_time_seconds)}</span>
+                        {task.due_date && (
+                          <span className={getTimeInfo(task.due_date).color}>
+                            • {getTimeInfo(task.due_date).text}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-text-muted mt-1">
+                        <span>{formatTimeAgo(task.last_active_at)}</span>
+                        {task.reminder_interval_minutes && task.reminder_interval_minutes > 0 ? (
+                          <Bell className="w-3 h-3 text-yellow-400" />
+                        ) : (
+                          <BellOff className="w-3 h-3 text-text-muted" />
+                        )}
                       </div>
                       {/* Progress bar */}
                       <div className="mt-1 h-1 bg-dark-primary rounded-full overflow-hidden">

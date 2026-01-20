@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bell, BellOff, Clock } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
@@ -46,13 +46,58 @@ export function TaskCalendarView({ tasks, onClick }: TaskCalendarViewProps) {
     );
   };
 
-  const formatTimeLeft = (dueDate: string) => {
-    const diff = new Date(dueDate).getTime() - Date.now();
-    if (diff < 0) return "Overdue";
+  const getTimeInfo = (dueDate: string | null) => {
+    if (!dueDate) return { text: "", urgent: false, overdue: false, color: "text-text-muted" };
+    
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft < 0) return { text: `${Math.abs(daysLeft)}d overdue`, urgent: true, overdue: true, color: "text-red-400" };
+    if (daysLeft === 0) return { text: "Today", urgent: true, overdue: false, color: "text-yellow-400" };
+    if (daysLeft === 1) return { text: "1d", urgent: true, overdue: false, color: "text-yellow-400" };
+    if (daysLeft <= 3) return { text: `${daysLeft}d`, urgent: false, overdue: false, color: "text-orange-400" };
+    return { text: `${daysLeft}d`, urgent: false, overdue: false, color: "text-text-muted" };
+  };
+
+  const getDayStatus = (day: number) => {
+    const dateStr = new Date(year, month, day).toISOString().split("T")[0];
+    const dayTasks = tasks.filter((task) => task.due_date?.startsWith(dateStr));
+    
+    if (dayTasks.length === 0) return "empty";
+    
+    const now = new Date();
+    const dayDate = new Date(year, month, day);
+    const diff = dayDate.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft < 0) return "overdue";
+    if (daysLeft === 0) return "today";
+    if (daysLeft === 1) return "tomorrow";
+    return "future";
+  };
+
+  const getDayColor = (status: string) => {
+    switch (status) {
+      case "overdue": return "bg-red-500/20 border-red-500";
+      case "today": return "bg-yellow-500/20 border-yellow-500";
+      case "tomorrow": return "bg-orange-500/20 border-orange-500";
+      default: return "bg-emerald-500/20 border-emerald-500";
+    }
+  };
+
+  const formatTimeAgo = (timestamp: string | null) => {
+    if (!timestamp) return "-";
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = now.getTime() - then.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
-    if (hours < 24) return `${hours}h`;
     const days = Math.floor(hours / 24);
-    return `${days}d`;
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
   };
 
   const monthNames = [
@@ -163,14 +208,16 @@ export function TaskCalendarView({ tasks, onClick }: TaskCalendarViewProps) {
                       key={task.id}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => onClick(task)}
-                      className="flex items-center gap-1 px-1 py-0.5 rounded bg-accent-primary/10 text-accent-primary text-[10px] truncate"
+                      className={`flex items-center gap-1 px-1 py-0.5 rounded text-[10px] truncate ${
+                        task.status === "completed" 
+                          ? "bg-emerald-500/20 text-emerald-400" 
+                          : "bg-accent-primary/10 text-accent-primary"
+                      }`}
                     >
                       <span className="truncate">{task.title}</span>
-                      {task.due_date && (
-                        <span className="text-[10px] opacity-70">
-                          {formatTimeLeft(task.due_date)}
-                        </span>
-                      )}
+                      <span className={`text-[10px] opacity-70 ${getTimeInfo(task.due_date).color}`}>
+                        {getTimeInfo(task.due_date).text}
+                      </span>
                     </motion.div>
                   ))}
                   {dayTasks.length > 3 && (

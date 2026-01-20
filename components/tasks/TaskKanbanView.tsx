@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, Reorder } from "framer-motion";
-import { Plus, Clock, Play, CheckCircle } from "lucide-react";
+import { Plus, Clock, Play, CheckCircle, Bell, BellOff, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
@@ -38,6 +38,68 @@ export function TaskKanbanView({
 
   const getTasksByStatus = (status: KanbanStatus) => {
     return tasks.filter((task) => task.status === status);
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const getTimeInfo = (dueDate: string | null) => {
+    if (!dueDate) return { text: "", color: "text-text-muted", urgent: false, overdue: false, percent: 0 };
+    
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft < 0) return { text: `${Math.abs(daysLeft)}d overdue`, color: "text-red-400", urgent: true, overdue: true, percent: 100 };
+    if (daysLeft === 0) return { text: `${Math.ceil(diff / (1000 * 60 * 60))}h left`, color: "text-yellow-400", urgent: true, overdue: false, percent: 90 };
+    if (daysLeft === 1) return { text: "1d left", color: "text-yellow-400", urgent: true, overdue: false, percent: 80 };
+    if (daysLeft <= 3) return { text: `${daysLeft}d left`, color: "text-orange-400", urgent: false, overdue: false, percent: 60 };
+    return { text: `${daysLeft}d left`, color: "text-text-muted", urgent: false, overdue: false, percent: 40 };
+  };
+
+  const getCountdownPercent = (dueDate: string | null) => {
+    if (!dueDate) return 0;
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const totalDays = 7;
+    return Math.min(100, Math.max(0, ((totalDays - daysLeft) / totalDays) * 100));
+  };
+
+  const getCountdownColor = (percent: number, overdue: boolean) => {
+    if (overdue) return "bg-red-500";
+    if (percent >= 80) return "bg-yellow-500";
+    if (percent >= 60) return "bg-orange-500";
+    return "bg-emerald-500";
+  };
+
+  const formatTimeAgo = (timestamp: string | null) => {
+    if (!timestamp) return "-";
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = now.getTime() - then.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
+  };
+
+  const getActivityStatus = (timestamp: string | null) => {
+    if (!timestamp) return "inactive";
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = now.getTime() - then.getTime();
+    const hours = diff / (1000 * 60 * 60);
+    
+    if (hours < 1) return "active";
+    if (hours < 24) return "away";
+    return "inactive";
   };
 
   const formatTime = (seconds: number) => {
@@ -109,9 +171,57 @@ export function TaskKanbanView({
                       </Badge>
                     </div>
 
+                    {/* Deadline */}
+                    {task.due_date && (
+                      <div className={`text-xs mb-2 ${getTimeInfo(task.due_date).color}`}>
+                        📅 {formatDate(task.due_date)} • {getTimeInfo(task.due_date).text}
+                      </div>
+                    )}
+
                     {task.description && (
                       <p className="text-xs text-text-muted line-clamp-2 mb-2">{task.description}</p>
                     )}
+
+                    {/* Countdown Progress Bar */}
+                    {task.due_date && (
+                      <div className="mb-2">
+                        <div className="h-1 bg-dark-primary rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${getCountdownPercent(task.due_date)}%` }}
+                            className={`h-full rounded-full ${getCountdownColor(getCountdownPercent(task.due_date), getTimeInfo(task.due_date).overdue)}`}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Time Away & Reminder */}
+                    <div className="flex items-center gap-2 mb-2 text-xs">
+                      <span className="flex items-center gap-1">
+                        {(() => {
+                          const status = getActivityStatus(task.last_active_at);
+                          return (
+                            <>
+                              {status === "active" && <span className="w-2 h-2 rounded-full bg-emerald-500" />}
+                              {status === "away" && <span className="w-2 h-2 rounded-full bg-yellow-500" />}
+                              {status === "inactive" && <span className="w-2 h-2 rounded-full bg-gray-500" />}
+                              <span className="text-text-muted">{formatTimeAgo(task.last_active_at)}</span>
+                            </>
+                          );
+                        })()}
+                      </span>
+                      {task.reminder_interval_minutes && task.reminder_interval_minutes > 0 ? (
+                        <span className="flex items-center gap-1 text-yellow-400">
+                          <Bell className="w-3 h-3" />
+                          {task.reminder_interval_minutes}m
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-text-muted">
+                          <BellOff className="w-3 h-3" />
+                          Off
+                        </span>
+                      )}
+                    </div>
 
                     {/* Quick Stats */}
                     <div className="flex items-center gap-3 text-xs">

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Filter, ArrowUpDown, Download, Upload, MoreHorizontal } from "lucide-react";
+import { Plus, Filter, ArrowUpDown, Download, Upload, MoreHorizontal, Bell, BellOff, Clock } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -27,10 +27,12 @@ export function TaskDatabaseView({ tasks, onClick }: TaskDatabaseViewProps) {
     { key: "title", label: "Title", width: "minmax(200px, 1fr)" },
     { key: "status", label: "Status", width: "100px" },
     { key: "priority", label: "Priority", width: "80px" },
+    { key: "due_date", label: "Due Date", width: "100px" },
+    { key: "countdown", label: "Countdown", width: "80px" },
+    { key: "time_away", label: "Time Away", width: "80px" },
+    { key: "reminder", label: "Reminder", width: "80px" },
     { key: "tally_count", label: "Tally", width: "60px" },
     { key: "pomodoro_count", label: "Pomodoro", width: "80px" },
-    { key: "total_time_seconds", label: "Timer", width: "80px" },
-    { key: "due_date", label: "Due Date", width: "100px" },
   ];
 
   const filteredTasks = tasks
@@ -76,7 +78,52 @@ export function TaskDatabaseView({ tasks, onClick }: TaskDatabaseViewProps) {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString();
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const getTimeInfo = (dueDate: string | null) => {
+    if (!dueDate) return { text: "", color: "text-text-muted", urgent: false, overdue: false, percent: 0 };
+    
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft < 0) return { text: `${Math.abs(daysLeft)}d overdue`, color: "text-red-400", urgent: true, overdue: true, percent: 100 };
+    if (daysLeft === 0) return { text: "Today", color: "text-yellow-400", urgent: true, overdue: false, percent: 90 };
+    if (daysLeft === 1) return { text: "1d left", color: "text-yellow-400", urgent: true, overdue: false, percent: 80 };
+    if (daysLeft <= 3) return { text: `${daysLeft}d left`, color: "text-orange-400", urgent: false, overdue: false, percent: 60 };
+    return { text: `${daysLeft}d left`, color: "text-text-muted", urgent: false, overdue: false, percent: 40 };
+  };
+
+  const getCountdownPercent = (dueDate: string | null) => {
+    if (!dueDate) return 0;
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const totalDays = 7;
+    return Math.min(100, Math.max(0, ((totalDays - daysLeft) / totalDays) * 100));
+  };
+
+  const getCountdownColor = (percent: number, overdue: boolean) => {
+    if (overdue) return "bg-red-500";
+    if (percent >= 80) return "bg-yellow-500";
+    if (percent >= 60) return "bg-orange-500";
+    return "bg-emerald-500";
+  };
+
+  const formatTimeAgo = (timestamp: string | null) => {
+    if (!timestamp) return "-";
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = now.getTime() - then.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
   };
 
   const toggleRow = (taskId: string) => {
@@ -240,7 +287,38 @@ export function TaskDatabaseView({ tasks, onClick }: TaskDatabaseViewProps) {
                     <span className="text-sm text-text-primary">{formatTime(task.total_time_seconds)}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-text-muted">{formatDate(task.due_date)}</span>
+                    <span className={`text-sm ${getTimeInfo(task.due_date).color}`}>
+                      {formatDate(task.due_date)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="w-full">
+                      <div className="h-1 bg-dark-primary rounded-full overflow-hidden mb-1">
+                        <div
+                          className={`h-full rounded-full ${getCountdownColor(getCountdownPercent(task.due_date), getTimeInfo(task.due_date).overdue)}`}
+                          style={{ width: `${getCountdownPercent(task.due_date)}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-text-muted">
+                        {Math.round(getCountdownPercent(task.due_date))}%
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-text-muted">{formatTimeAgo(task.last_active_at)}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {task.reminder_interval_minutes && task.reminder_interval_minutes > 0 ? (
+                      <span className="flex items-center gap-1 text-yellow-400">
+                        <Bell className="w-3 h-3" />
+                        {task.reminder_interval_minutes}m
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-text-muted">
+                        <BellOff className="w-3 h-3" />
+                        Off
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <button className="p-1 rounded hover:bg-dark-secondary transition-colors">

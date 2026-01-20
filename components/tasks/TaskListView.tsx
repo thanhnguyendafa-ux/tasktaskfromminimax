@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, Clock, Play, Plus } from "lucide-react";
+import { CheckCircle, Clock, Play, Plus, Bell, BellOff, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
@@ -31,13 +31,76 @@ export function TaskListView({
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "completed">("all");
 
-  const formatTimeLeft = (dueDate: string) => {
-    const diff = new Date(dueDate).getTime() - Date.now();
-    if (diff < 0) return "Overdue";
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const getTimeInfo = (dueDate: string | null) => {
+    if (!dueDate) return { text: "No due date", color: "text-text-muted", urgent: false, overdue: false, percent: 0 };
+    
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const hoursLeft = Math.ceil(diff / (1000 * 60 * 60));
+    
+    if (daysLeft < 0) {
+      return { text: `${Math.abs(daysLeft)}d overdue`, color: "text-red-400", urgent: true, overdue: true, percent: 100 };
+    }
+    if (daysLeft === 0) {
+      return { text: `${hoursLeft}h left`, color: "text-yellow-400", urgent: true, overdue: false, percent: 90 };
+    }
+    if (daysLeft === 1) {
+      return { text: "1d left", color: "text-yellow-400", urgent: true, overdue: false, percent: 80 };
+    }
+    if (daysLeft <= 3) {
+      return { text: `${daysLeft}d left`, color: "text-orange-400", urgent: false, overdue: false, percent: 60 };
+    }
+    return { text: `${daysLeft}d left`, color: "text-text-muted", urgent: false, overdue: false, percent: 40 };
+  };
+
+  const getCountdownPercent = (dueDate: string | null) => {
+    if (!dueDate) return 0;
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const totalDays = 7;
+    return Math.min(100, Math.max(0, ((totalDays - daysLeft) / totalDays) * 100));
+  };
+
+  const getCountdownColor = (percent: number, overdue: boolean) => {
+    if (overdue) return "bg-red-500";
+    if (percent >= 80) return "bg-yellow-500";
+    if (percent >= 60) return "bg-orange-500";
+    return "bg-emerald-500";
+  };
+
+  const formatTimeAgo = (timestamp: string | null) => {
+    if (!timestamp) return "-";
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = now.getTime() - then.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
-    if (hours < 24) return `${hours}h left`;
     const days = Math.floor(hours / 24);
-    return `${days}d left`;
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
+  };
+
+  const getActivityStatus = (timestamp: string | null) => {
+    if (!timestamp) return "inactive";
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = now.getTime() - then.getTime();
+    const hours = diff / (1000 * 60 * 60);
+    
+    if (hours < 1) return "active";
+    if (hours < 24) return "away";
+    return "inactive";
   };
 
   const formatTime = (seconds: number) => {
@@ -131,14 +194,14 @@ export function TaskListView({
       </div>
 
       {/* Table Header */}
-      <div className="hidden grid-cols-[40px_1fr_100px_80px_80px_80px_80px] gap-2 px-4 py-2 bg-dark-tertiary rounded-t-xl text-xs text-text-muted font-medium">
+      <div className="hidden grid-cols-[40px_1.5fr_100px_80px_80px_70px_70px] gap-2 px-4 py-2 bg-dark-tertiary rounded-t-xl text-xs text-text-muted font-medium">
         <div>#</div>
         <div>Task</div>
         <div>Due</div>
+        <div>Countdown</div>
+        <div>Time Away</div>
         <div>Tally</div>
         <div>Pomodoro</div>
-        <div>Timer</div>
-        <div>Priority</div>
       </div>
 
       {/* Task List */}
@@ -149,7 +212,7 @@ export function TaskListView({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="grid grid-cols-[40px_1fr_100px_80px_80px_80px_80px] gap-2 items-center px-4 py-3 bg-dark-secondary rounded-xl hover:bg-dark-tertiary transition-colors cursor-pointer"
+            className="grid grid-cols-[40px_1.5fr_100px_80px_80px_70px_70px] gap-2 items-center px-4 py-3 bg-dark-secondary rounded-xl hover:bg-dark-tertiary transition-colors cursor-pointer"
             onClick={() => onClick(task)}
           >
             <div className="text-xs text-text-muted">{index + 1}</div>
@@ -189,8 +252,46 @@ export function TaskListView({
               </div>
             </div>
 
-            <div className="text-xs text-text-muted">
-              {task.due_date ? formatTimeLeft(task.due_date) : "-"}
+            {/* Due Date */}
+            <div className="text-xs">
+              <div className={`font-medium ${getTimeInfo(task.due_date).color}`}>
+                {formatDate(task.due_date)}
+              </div>
+              <div className={`text-[10px] ${getTimeInfo(task.due_date).color}`}>
+                {getTimeInfo(task.due_date).text}
+              </div>
+            </div>
+
+            {/* Countdown Progress Bar */}
+            <div className="space-y-1">
+              <div className="h-1.5 bg-dark-primary rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${getCountdownPercent(task.due_date)}%` }}
+                  transition={{ delay: index * 0.05 + 0.2, duration: 0.3 }}
+                  className={`h-full rounded-full ${getCountdownColor(getCountdownPercent(task.due_date), getTimeInfo(task.due_date).overdue)}`}
+                />
+              </div>
+              <span className="text-[10px] text-text-muted">
+                {Math.round(getCountdownPercent(task.due_date))}%
+              </span>
+            </div>
+
+            {/* Time Away */}
+            <div className="text-xs">
+              <div className="flex items-center gap-1">
+                {(() => {
+                  const status = getActivityStatus(task.last_active_at);
+                  return (
+                    <>
+                      {status === "active" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                      {status === "away" && <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />}
+                      {status === "inactive" && <span className="w-1.5 h-1.5 rounded-full bg-gray-500" />}
+                      <span className="text-text-primary">{formatTimeAgo(task.last_active_at)}</span>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
 
             <div className="flex items-center gap-1">
@@ -235,9 +336,35 @@ export function TaskListView({
               <span className="text-xs text-text-primary font-medium">{formatTime(task.total_time_seconds)}</span>
             </div>
 
-            <Badge variant={priorityVariant[task.priority]} className="justify-center">
-              {task.priority === "high" ? "H" : task.priority === "medium" ? "M" : "L"}
-            </Badge>
+            {/* Tally */}
+            <div className="flex items-center gap-1">
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTally(task.id);
+                }}
+                className="w-5 h-5 rounded bg-accent-primary/20 flex items-center justify-center"
+              >
+                <Plus className="w-2.5 h-2.5 text-accent-primary" />
+              </motion.button>
+              <span className="text-xs text-text-primary font-medium">{task.tally_count}</span>
+            </div>
+
+            {/* Pomodoro */}
+            <div className="flex items-center gap-1">
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPomodoro(task.id);
+                }}
+                className="w-5 h-5 rounded bg-yellow-500/20 flex items-center justify-center"
+              >
+                <Clock className="w-2.5 h-2.5 text-yellow-500" />
+              </motion.button>
+              <span className="text-xs text-text-primary font-medium">{task.pomodoro_count}</span>
+            </div>
           </motion.div>
         ))}
 

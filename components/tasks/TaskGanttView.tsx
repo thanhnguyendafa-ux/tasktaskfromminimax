@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bell, BellOff, Clock, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Task } from "@/types";
@@ -51,6 +51,34 @@ export function TaskGanttView({ tasks, onClick }: TaskGanttViewProps) {
     if (progress >= 50) return "bg-blue-500";
     if (progress >= 25) return "bg-yellow-500";
     return "bg-gray-500";
+  };
+
+  const getTimeInfo = (dueDate: string | null) => {
+    if (!dueDate) return { text: "", color: "text-text-muted", urgent: false, overdue: false };
+    
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft < 0) return { text: `${Math.abs(daysLeft)}d overdue`, color: "text-red-400", urgent: true, overdue: true };
+    if (daysLeft === 0) return { text: "Today", color: "text-yellow-400", urgent: true, overdue: false };
+    if (daysLeft === 1) return { text: "1d left", color: "text-yellow-400", urgent: true, overdue: false };
+    if (daysLeft <= 3) return { text: `${daysLeft}d left`, color: "text-orange-400", urgent: false, overdue: false };
+    return { text: `${daysLeft}d left`, color: "text-text-muted", urgent: false, overdue: false };
+  };
+
+  const formatTimeAgo = (timestamp: string | null) => {
+    if (!timestamp) return "-";
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = now.getTime() - then.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
   };
 
   const priorityVariant = {
@@ -167,6 +195,11 @@ export function TaskGanttView({ tasks, onClick }: TaskGanttViewProps) {
                     <span className={`text-sm truncate ${task.status === "completed" ? "line-through text-text-muted" : "text-text-primary"}`}>
                       {task.title}
                     </span>
+                    {task.due_date && (
+                      <span className={`text-xs ${getTimeInfo(task.due_date).color}`}>
+                        • {getTimeInfo(task.due_date).text}
+                      </span>
+                    )}
                   </div>
 
                   {/* Timeline Bar */}
@@ -199,10 +232,13 @@ export function TaskGanttView({ tasks, onClick }: TaskGanttViewProps) {
                         style={{ left: `${left}%` }}
                         onClick={() => onClick(task)}
                       >
-                        <div className="flex items-center justify-center h-full">
-                          <span className="text-xs text-white font-medium truncate px-2">
+                        <div className="flex items-center justify-center h-full gap-1">
+                          <span className="text-xs text-white font-medium truncate">
                             {progress}%
                           </span>
+                          {task.reminder_interval_minutes && task.reminder_interval_minutes > 0 && (
+                            <Bell className="w-3 h-3 text-white/70" />
+                          )}
                         </div>
                       </motion.div>
                     )}
