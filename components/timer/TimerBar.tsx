@@ -10,7 +10,7 @@ import { formatDuration } from "@/lib/formatDuration";
 import { Task } from "@/types";
 
 export function TimerBar() {
-  const { tasks, startTimer, pauseTimer, stopTimer } = useTaskStore();
+  const { tasks, startTimer, pauseTimer, resumeTimer, stopTimer } = useTaskStore();
   const { activeTaskId, isRunning } = useTimerStore();
   const { profile } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -45,7 +45,7 @@ export function TimerBar() {
     if (activeTask.timer_status === "running") {
       pauseTimer(activeTask.id);
     } else if (activeTask.timer_status === "paused") {
-      startTimer(activeTask.id);
+      resumeTimer(activeTask.id);
     }
   };
 

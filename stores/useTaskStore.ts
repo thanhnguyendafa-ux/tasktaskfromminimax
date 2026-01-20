@@ -50,7 +50,6 @@ export const useTaskStore = create<TaskState>((set) => ({
   startTimer: (id) => set((state) => {
     const task = state.tasks.find((t) => t.id === id);
     if (task) {
-      const timerStartedAt = new Date().toISOString();
       useTimerStore.setState({
         activeTaskId: task.id,
         elapsedSeconds: task.total_time_seconds,
@@ -107,13 +106,10 @@ export const useTaskStore = create<TaskState>((set) => ({
   }),
   
   resumeTimer: (id) => set((state) => {
-    const task = state.tasks.find((t) => t.id === id);
-    if (task) {
-      useTimerStore.setState({
-        isRunning: true,
-        lastTick: Date.now(),
-      });
-    }
+    useTimerStore.setState({
+      isRunning: true,
+      lastTick: Date.now(),
+    });
     return {
       tasks: state.tasks.map((t) => 
         t.id === id && t.timer_status === 'paused'
