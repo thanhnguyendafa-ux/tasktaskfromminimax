@@ -26,10 +26,12 @@ import { PetFeeding } from "@/components/pet/PetFeeding";
 import { PetEvolution } from "@/components/pet/PetEvolution";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { useUserStore } from "@/stores/useUserStore";
-import { Task, Habit, Goal, Challenge, DailyReward, UserStats } from "@/types";
+import { Task, Habit, Goal, Challenge, DailyReward, UserStats, ViewType } from "@/types";
+import { TaskViewFactory } from "@/components/tasks/TaskViewFactory";
 
 export default function HomePage() {
   const [currentPage, setCurrentPage] = useState("home");
+  const [currentView, setCurrentView] = useState<ViewType>("list");
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showDetailTracking, setShowDetailTracking] = useState(false);
   const [showTeamWorkspace, setShowTeamWorkspace] = useState(false);
@@ -339,25 +341,31 @@ export default function HomePage() {
           <div className="p-4 space-y-4 pb-20">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-bold text-text-primary">Tasks</h1>
-              <ThemeSwitcher />
+              <div className="flex items-center gap-2">
+                <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
+                <ThemeSwitcher />
+              </div>
             </div>
-            <ViewSwitcher currentView="list" onViewChange={() => {}} />
             {tasks.length === 0 ? (
               <Card className="text-center py-8">
                 <p className="text-text-muted">No tasks yet</p>
               </Card>
             ) : (
-              tasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onComplete={handleCompleteTask}
-                  onTally={handleTally}
-                  onPomodoro={handlePomodoro}
-                  onTimer={handleTimer}
-                  onClick={() => handleTaskClick(task)}
-                />
-              ))
+              <TaskViewFactory
+                view={currentView}
+                tasks={tasks}
+                onComplete={handleCompleteTask}
+                onTally={handleTally}
+                onPomodoro={handlePomodoro}
+                onTimer={handleTimer}
+                onStatusChange={(taskId, status) => {
+                  const task = tasks.find(t => t.id === taskId);
+                  if (task) {
+                    updateTask(taskId, { status });
+                  }
+                }}
+                onClick={handleTaskClick}
+              />
             )}
           </div>
         );
