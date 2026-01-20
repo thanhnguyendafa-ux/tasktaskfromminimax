@@ -74,18 +74,24 @@ CREATE TABLE IF NOT EXISTS tasks (
   priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
   due_date TIMESTAMPTZ,
   
+  -- Tracking Mode (per task)
+  tracking_mode TEXT NOT NULL DEFAULT 'time_tracker' CHECK (tracking_mode IN ('tally', 'time_tracker', 'pomodoro')),
+  tracking_mode_updated_at TIMESTAMPTZ,
+  
   -- Tally System
   tally_count INTEGER NOT NULL DEFAULT 0,
   tally_goal INTEGER NOT NULL DEFAULT 0,
+  last_tally_at TIMESTAMPTZ,
+  
+  -- Time Tracker System
+  total_time_seconds INTEGER NOT NULL DEFAULT 0,
+  estimated_time_seconds INTEGER NOT NULL DEFAULT 0,
   
   -- Pomodoro System
   pomodoro_count INTEGER NOT NULL DEFAULT 0,
   pomodoro_goal INTEGER NOT NULL DEFAULT 1,
   pomodoro_duration INTEGER NOT NULL DEFAULT 1500, -- 25 phút
-  
-  -- Timer System
-  total_time_seconds INTEGER NOT NULL DEFAULT 0,
-  estimated_time_seconds INTEGER NOT NULL DEFAULT 0,
+  pomodoro_remaining_seconds INTEGER NOT NULL DEFAULT 1500,
   
   -- Timer State
   timer_status TEXT NOT NULL DEFAULT 'idle' CHECK (timer_status IN ('idle', 'running', 'paused')),

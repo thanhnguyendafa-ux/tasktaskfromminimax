@@ -13,6 +13,8 @@ export interface Profile {
   updated_at: string;
 }
 
+export type TrackingMode = 'tally' | 'time_tracker' | 'pomodoro';
+
 export interface Task {
   id: string;
   user_id: string;
@@ -22,19 +24,24 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   due_date: string | null;
   
-  // Tally System
+  // Tracking Mode (per task)
+  tracking_mode: TrackingMode;
+  tracking_mode_updated_at: string | null;
+  
+  // Tally System (count up)
   tally_count: number;
   tally_goal: number;
   last_tally_at: string | null;
   
-  // Pomodoro System
+  // Time Tracker System (count up)
+  total_time_seconds: number;
+  estimated_time_seconds: number;
+  
+  // Pomodoro System (count down)
   pomodoro_count: number;
   pomodoro_goal: number;
   pomodoro_duration: number;
-  
-  // Timer System
-  total_time_seconds: number;
-  estimated_time_seconds: number;
+  pomodoro_remaining_seconds: number;
   
   // Timer State
   timer_status: 'idle' | 'running' | 'paused';
