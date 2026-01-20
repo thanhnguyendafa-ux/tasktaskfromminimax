@@ -91,6 +91,22 @@ export interface TimeTracking {
   end_time: string | null;
   duration_seconds: number | null;
   session_type: 'manual' | 'pomodoro' | 'break';
+  xp_earned: number;
+  coins_earned: number;
+  status: 'completed' | 'abandoned' | 'interrupted';
+  created_at: string;
+}
+
+export interface FocusAnalytics {
+  totalMinutes: number;
+  totalSessions: number;
+  averageSessionMinutes: number;
+  totalXpEarned: number;
+  totalCoinsEarned: number;
+  streakDays: number;
+  mostProductiveDay: string | null;
+  topTasks: { taskId: string; title: string; minutes: number }[];
+  dailyData: { date: string; minutes: number; sessions: number }[];
 }
 
 export interface UserPet {

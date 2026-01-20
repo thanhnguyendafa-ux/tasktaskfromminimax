@@ -1,40 +1,41 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pause, Square, ChevronUp, ChevronDown } from "lucide-react";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { useTimerStore } from "@/stores/useTimerStore";
+import { useUserStore } from "@/stores/useUserStore";
+import { formatDuration } from "@/lib/formatDuration";
 import { Task } from "@/types";
 
 export function TimerBar() {
   const { tasks, startTimer, pauseTimer, stopTimer } = useTaskStore();
-  const { activeTaskId, isRunning, elapsedSeconds } = useTimerStore();
+  const { activeTaskId, isRunning } = useTimerStore();
+  const { profile } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [displayTime, setDisplayTime] = useState("00:00:00");
+  const [isSaving, setIsSaving] = useState(false);
+  const sessionStartRef = useRef<string | null>(null);
 
   const activeTask = activeTaskId ? tasks.find((t) => t.id === activeTaskId) : null;
 
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
-
   useEffect(() => {
     if (activeTaskId && activeTask?.timer_status === "running" && activeTask.timer_started_at) {
+      if (!sessionStartRef.current) {
+        sessionStartRef.current = activeTask.timer_started_at;
+      }
       const updateTime = () => {
         const elapsed =
           activeTask.total_time_seconds +
           (Date.now() - new Date(activeTask.timer_started_at!).getTime()) / 1000;
-        setDisplayTime(formatTime(elapsed));
+        setDisplayTime(formatDuration(elapsed));
       };
       updateTime();
       const interval = setInterval(updateTime, 1000);
       return () => clearInterval(interval);
     } else if (activeTask) {
-      setDisplayTime(formatTime(activeTask.total_time_seconds));
+      setDisplayTime(formatDuration(activeTask.total_time_seconds));
     }
   }, [activeTaskId, activeTask]);
 
@@ -48,8 +49,48 @@ export function TimerBar() {
     }
   };
 
-  const handleStop = () => {
-    stopTimer(activeTask.id);
+  const handleStop = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    try {
+      const startTime = sessionStartRef.current;
+      const endTime = new Date().toISOString();
+
+      if (startTime) {
+        const start = new Date(startTime).getTime();
+        const end = new Date(endTime).getTime();
+        const durationSeconds = Math.round((end - start) / 1000);
+
+        if (durationSeconds >= 10) {
+          const durationMinutes = Math.round(durationSeconds / 60);
+          const xpEarned = durationMinutes;
+          const coinsEarned = Math.round(durationMinutes * 0.5);
+
+          await fetch('/api/timer/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              task_id: activeTask.id,
+              user_id: profile?.id || "demo",
+              start_time: startTime,
+              end_time: endTime,
+              duration_seconds: durationSeconds,
+              session_type: 'manual',
+              xp_earned: xpEarned,
+              coins_earned: coinsEarned,
+              status: 'completed',
+            }),
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save session:', error);
+    } finally {
+      sessionStartRef.current = null;
+      stopTimer(activeTask.id);
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -120,14 +161,14 @@ export function TimerBar() {
               <div className="grid grid-cols-3 gap-4 text-center text-sm">
                 <div>
                   <p className="text-blue-300 text-xs">Total Time</p>
-                  <p className="font-mono">{formatTime(activeTask.total_time_seconds)}</p>
+                  <p className="font-mono">{formatDuration(activeTask.total_time_seconds)}</p>
                 </div>
                 <div>
                   <p className="text-blue-300 text-xs">Estimated</p>
                   <p className="font-mono">
                     {activeTask.estimated_time_seconds
-                      ? formatTime(activeTask.estimated_time_seconds)
-                      : "--:--:--"}
+                      ? formatDuration(activeTask.estimated_time_seconds)
+                      : '--'}
                   </p>
                 </div>
                 <div>

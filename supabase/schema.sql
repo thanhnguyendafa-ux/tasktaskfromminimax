@@ -168,7 +168,7 @@ CREATE POLICY "Users can update own pomodoro sessions" ON pomodoro_sessions
   FOR UPDATE USING (user_id = auth.uid());
 
 -- ============================================
--- TIME TRACKING TABLE
+-- TIME TRACKING TABLE (Timer Sessions)
 -- ============================================
 CREATE TABLE IF NOT EXISTS time_tracking (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -178,13 +178,25 @@ CREATE TABLE IF NOT EXISTS time_tracking (
   end_time TIMESTAMPTZ,
   duration_seconds INTEGER,
   session_type TEXT NOT NULL DEFAULT 'manual' CHECK (session_type IN ('manual', 'pomodoro', 'break')),
+  xp_earned INTEGER DEFAULT 0,
+  coins_earned INTEGER DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('completed', 'abandoned', 'interrupted')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE time_tracking ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can manage own time tracking" ON time_tracking
-  FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users can view own time tracking" ON time_tracking
+  FOR SELECT USING (user_id = auth.uid());
+
+CREATE POLICY "Users can create time tracking" ON time_tracking
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users can update own time tracking" ON time_tracking
+  FOR UPDATE USING (user_id = auth.uid());
+
+CREATE POLICY "Users can delete own time tracking" ON time_tracking
+  FOR DELETE USING (user_id = auth.uid());
 
 -- ============================================
 -- USER PETS TABLE

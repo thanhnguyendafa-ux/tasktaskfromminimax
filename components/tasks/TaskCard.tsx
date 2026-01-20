@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Task } from "@/types";
 import { useTimerStore } from "@/stores/useTimerStore";
+import { formatDuration } from "@/lib/formatDuration";
 
 interface TaskCardProps {
   task: Task;
@@ -25,16 +26,9 @@ export function TaskCard({ task, onComplete, onTally, onPomodoro, onTimer, onCli
   
   const isTimerRunning = activeTaskId === task.id && isRunning;
   
-  const formatTimerDisplay = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
   const timerDisplay = task.timer_status === 'running' && task.timer_started_at
-    ? formatTimerDisplay(task.total_time_seconds + (Date.now() - new Date(task.timer_started_at).getTime()) / 1000)
-    : formatTimerDisplay(task.total_time_seconds);
+    ? formatDuration(task.total_time_seconds + (Date.now() - new Date(task.timer_started_at).getTime()) / 1000)
+    : formatDuration(task.total_time_seconds);
   
   const priorityVariant = {
     low: "low" as const,
