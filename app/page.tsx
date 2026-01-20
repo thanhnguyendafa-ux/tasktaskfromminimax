@@ -25,6 +25,7 @@ import { TeamWorkspace } from "@/components/collaboration/TeamWorkspace";
 import { PetFeeding } from "@/components/pet/PetFeeding";
 import { PetEvolution } from "@/components/pet/PetEvolution";
 import { TimerBar } from "@/components/timer/TimerBar";
+import { usePageVisibility } from "@/hooks/useTimer";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { Task, Habit, Goal, Challenge, DailyReward, UserStats, ViewType } from "@/types";
@@ -55,6 +56,11 @@ export default function HomePage() {
       localStorage.setItem('lastTallyReset', today);
     }
   }, [tasks.length]);
+
+  // Auto-pause timer when tab is hidden for 30+ seconds
+  usePageVisibility({
+    awayThresholdMs: 30000,
+  });
 
   // Demo data for integrated components
   const [habits, setHabits] = useState<Habit[]>([
